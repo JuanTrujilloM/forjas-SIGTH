@@ -1,0 +1,27 @@
+# Secrets — never commit (CLAUDE.md 11.2)
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Backend
+backend/.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+backend/staticfiles/
+.pytest_cache/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Employee data — never commit source spreadsheets or exports (CLAUDE.md 11)
+*.xlsx
+*.xls
+*.csv
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

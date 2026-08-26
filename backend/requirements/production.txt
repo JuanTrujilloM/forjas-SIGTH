@@ -1,0 +1,6 @@
+# Production environment. No development or testing tools.
+#
+# The WSGI server is added here once the deployment decision is closed
+# (CLAUDE.md 13): gunicorn on Linux, waitress on Windows Server.
+
+-r base.txt
