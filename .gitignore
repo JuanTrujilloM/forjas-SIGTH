@@ -16,7 +16,7 @@ backend/staticfiles/
 frontend/node_modules/
 frontend/dist/
 
-# Employee data — never commit source spreadsheets or exports (CLAUDE.md 11)
+# Employee data
 *.xlsx
 *.xls
 *.csv
