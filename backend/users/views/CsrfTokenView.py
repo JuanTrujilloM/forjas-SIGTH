@@ -1,4 +1,6 @@
 # external libraries imports
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -6,9 +8,9 @@ from rest_framework.views import APIView
 
 
 # main class
-# touches no table on purpose: a failure here means the URL or CORS is wrong, not the database
-class SystemHealthView(APIView):
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class CsrfTokenView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request: Request) -> Response:
-        return Response({'status': 'ok', 'service': 'SIGTH API'})
+        return Response({'detail': 'Cookie CSRF establecida.'})
