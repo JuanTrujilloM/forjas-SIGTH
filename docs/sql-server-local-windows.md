@@ -278,7 +278,8 @@ cd frontend; npm run dev
 ```
 
 **Comprobar que back y front se hablan:** con los dos corriendo, abrir
-`http://localhost:5173/estado`.
+`http://localhost:5173/ingreso` e iniciar sesión. Si aún no hay ninguna cuenta, crearla
+antes con `createsuperuser` (ver `docs/autenticacion.md`).
 
 **Después de traer cambios que tocan modelos:**
 
