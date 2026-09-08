@@ -7,7 +7,6 @@ from users.models import Division, User
 
 
 # main code
-# for Human Resources and IT only; end users work through the frontend
 @admin.register(Division)
 class DivisionAdmin(admin.ModelAdmin):
     list_display = ['code', 'name', 'is_active', 'has_full_employee_access']
@@ -15,15 +14,25 @@ class DivisionAdmin(admin.ModelAdmin):
     search_fields = ['code', 'name']
     ordering = ['name']
 
-
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    fieldsets = DjangoUserAdmin.fieldsets + (
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Información personal', {'fields': ('first_name', 'last_name')}),
         ('Dirección', {'fields': ('division',)}),
+        ('Permisos', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
+        }),
+        ('Fechas', {'fields': ('last_login', 'date_joined')}),
     )
-    add_fieldsets = DjangoUserAdmin.add_fieldsets + (
-        ('Dirección', {'fields': ('division',)}),
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2', 'division'),
+        }),
     )
-    list_display = ['username', 'first_name', 'last_name', 'division', 'is_active']
-    list_filter = DjangoUserAdmin.list_filter + ('division',)
+    list_display = ['email', 'first_name', 'last_name', 'division', 'is_active']
+    list_filter = ['is_active', 'is_staff', 'is_superuser', 'division']
+    search_fields = ['email', 'first_name', 'last_name']
+    ordering = ['email']
     list_select_related = ['division']

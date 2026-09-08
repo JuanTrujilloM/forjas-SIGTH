@@ -13,6 +13,9 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 AUTH_USER_MODEL = 'users.User'
 
+# Login identifier domain; only accounts under it exist in the system (2)
+CORPORATE_EMAIL_DOMAIN = config('CORPORATE_EMAIL_DOMAIN')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -120,7 +123,7 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # PENDING (12, #6): confirm the page size against the real employee volume
+    # PENDING (12, #5): confirm the page size against the real employee volume
     'PAGE_SIZE': 25,
 }
 
@@ -130,7 +133,7 @@ SESSION_COOKIE_HTTPONLY = True
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# PENDING (12, #7): confirm the inactivity timeout with Information Security
+# PENDING (12, #6): confirm the inactivity timeout with Information Security
 SESSION_COOKIE_AGE = 60 * 60 * 8
 
 SESSION_SAVE_EVERY_REQUEST = True
