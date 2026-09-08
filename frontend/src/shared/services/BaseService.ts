@@ -10,6 +10,7 @@ export default class BaseService {
       withCredentials: true,
       xsrfCookieName: 'csrftoken',
       xsrfHeaderName: 'X-CSRFToken',
+      withXSRFToken: true,
     })
   }
 
@@ -24,10 +25,16 @@ export default class BaseService {
     if (!error.response) {
       return 'No hubo respuesta de la API. Verifica que el backend esté corriendo y que el origen del frontend esté en CORS_ALLOWED_ORIGINS.'
     }
+    const data = error.response.data as Record<string, unknown> | undefined
 
-    // DRF puts non-field errors in `detail`, already written in Spanish (4.4)
-    const detail = (error.response.data as { detail?: string } | undefined)?.detail
+    if (typeof data?.detail === 'string') {
+      return data.detail
+    }
 
-    return detail ?? `La API respondió con estado ${error.response.status}.`
+    const fieldError = Object.values(data ?? {}).find(
+      (value) => Array.isArray(value) && typeof value[0] === 'string',
+    ) as string[] | undefined
+
+    return fieldError?.[0] ?? `La API respondió con estado ${error.response.status}.`
   }
 }

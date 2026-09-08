@@ -3,14 +3,24 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 # internal application code imports
+from users.managers.UserManager import UserManager
+from users.validators import CorporateEmailValidator
+
 from .Division import Division
 
 
 # main class
-# system user; the Division it belongs to decides which employees it may see (6.1)
 class User(AbstractUser):
+    username = None
+
     # fields
     id = models.AutoField(primary_key=True)
+    email = models.EmailField(
+        unique=True,
+        validators=[CorporateEmailValidator()],
+        verbose_name='Correo corporativo',
+        help_text='Es el identificador de acceso al sistema',
+    )
 
     # relations
     division = models.ForeignKey(
@@ -27,10 +37,15 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
+
     class Meta:
-        ordering = ['username']
+        ordering = ['email']
         verbose_name = 'Usuario'
         verbose_name_plural = 'Usuarios'
 
     def __str__(self):
-        return self.get_full_name() or self.username
+        return self.get_full_name() or self.email

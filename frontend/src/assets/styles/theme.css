@@ -1,0 +1,96 @@
+/* main code */
+/* Poppins is self-hosted, not pulled from a CDN: the system runs on the company network
+   and a font request to the internet may simply never resolve there. Only the latin
+   subset ships, which already covers the accents and the ñ of Spanish. */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/poppins-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/poppins-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/poppins-600.woff2') format('woff2');
+}
+
+/* Palette taken from the Elementor global kit of forjasbolivar.com, which is the one the
+   company actually configured for its site. */
+:root {
+  --fb-blue: #003064;
+  --fb-blue-dark: #002049;
+  --fb-blue-darker: #001631;
+  --fb-orange: #ff8300;
+  --fb-orange-dark: #e57500;
+  --fb-orange-darker: #cc6900;
+  --fb-green: #3dac2b;
+  --fb-gray: #54595f;
+  --fb-gray-text: #7a7a7a;
+  --fb-gray-line: #c4c4c4;
+  --fb-surface: #f6f7f9;
+
+  --bs-primary: var(--fb-blue);
+  --bs-primary-rgb: 0, 48, 100;
+  --bs-link-color: var(--fb-blue);
+  --bs-link-color-rgb: 0, 48, 100;
+  --bs-link-hover-color: var(--fb-blue-dark);
+  --bs-body-color: var(--fb-gray);
+  --bs-body-font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bs-heading-color: var(--fb-blue);
+  --bs-border-color: var(--fb-gray-line);
+}
+
+/* Bootstrap resolves each button's colors from its own --bs-btn-* variables, compiled
+   from the Sass palette, so overriding --bs-primary alone would leave the buttons blue. */
+.btn-primary {
+  --bs-btn-bg: var(--fb-blue);
+  --bs-btn-border-color: var(--fb-blue);
+  --bs-btn-hover-bg: var(--fb-blue-dark);
+  --bs-btn-hover-border-color: var(--fb-blue-dark);
+  --bs-btn-active-bg: var(--fb-blue-darker);
+  --bs-btn-active-border-color: var(--fb-blue-darker);
+  --bs-btn-disabled-bg: var(--fb-blue);
+  --bs-btn-disabled-border-color: var(--fb-blue);
+  --bs-btn-focus-shadow-rgb: 0, 48, 100;
+}
+
+/* The orange of the brand carries the main action. Its label is the corporate blue and
+   not white: white on #ff8300 sits at 2.5:1 of contrast and fails WCAG AA, the blue
+   reaches 5.3:1. */
+.btn-accent {
+  --bs-btn-color: var(--fb-blue);
+  --bs-btn-bg: var(--fb-orange);
+  --bs-btn-border-color: var(--fb-orange);
+  --bs-btn-hover-color: var(--fb-blue);
+  --bs-btn-hover-bg: var(--fb-orange-dark);
+  --bs-btn-hover-border-color: var(--fb-orange-dark);
+  --bs-btn-active-color: var(--fb-blue);
+  --bs-btn-active-bg: var(--fb-orange-darker);
+  --bs-btn-active-border-color: var(--fb-orange-darker);
+  --bs-btn-disabled-color: var(--fb-blue);
+  --bs-btn-disabled-bg: var(--fb-orange);
+  --bs-btn-disabled-border-color: var(--fb-orange);
+  --bs-btn-focus-shadow-rgb: 255, 131, 0;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--fb-blue);
+  box-shadow: 0 0 0 0.25rem rgba(0, 48, 100, 0.15);
+}
+
+body {
+  font-family: var(--bs-body-font-family);
+}
