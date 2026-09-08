@@ -1,5 +1,5 @@
 # internal application code imports
-from .Department import Department
+from .Division import Division
 from .User import User
 
-__all__ = ['Department', 'User']
+__all__ = ['Division', 'User']

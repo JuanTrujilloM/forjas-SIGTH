@@ -3,24 +3,24 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 # internal application code imports
-from .Department import Department
+from .Division import Division
 
 
 # main class
-# system user; the Department it belongs to decides which fields it may read (6.2)
+# system user; the Division it belongs to decides which employees it may see (6.1)
 class User(AbstractUser):
     # fields
     id = models.AutoField(primary_key=True)
 
     # relations
-    department = models.ForeignKey(
-        Department,
+    division = models.ForeignKey(
+        Division,
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name='users',
-        verbose_name='Departamento',
-        help_text='Vacío solo para cuentas de TI que no pertenecen a un departamento',
+        verbose_name='Dirección',
+        help_text='Vacío solo para cuentas de TI que no pertenecen a una dirección',
     )
 
     # timestamps
