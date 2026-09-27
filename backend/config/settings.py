@@ -110,6 +110,13 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# PENDING (12, #12): provisional local folder until IT decides where uploaded files live
+# and how they are backed up. Nothing here is served as a public file: photos go out
+# through the API and the admin, behind the employee policy (6.4).
+MEDIA_ROOT = Path(config('MEDIA_ROOT', default='') or BASE_DIR / 'media')
+
+MEDIA_URL = 'media/'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {

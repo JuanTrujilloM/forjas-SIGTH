@@ -22,6 +22,7 @@ EMPLOYEE_FIELD_GROUPS: dict[EmployeeFieldGroup, frozenset[str]] = {
         'id_type',
         'id_number',
         'full_name',
+        'photo',
         'birth_date',
         'age',
         'sex',

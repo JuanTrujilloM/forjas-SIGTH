@@ -1,4 +1,7 @@
 # external libraries imports
+from pathlib import Path
+
+from django.urls import reverse
 from rest_framework import serializers
 
 # internal application code imports
@@ -10,6 +13,7 @@ from .ContractExtensionSerializer import ContractExtensionSerializer
 
 # main class
 class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
+    photo = serializers.SerializerMethodField()
     age = serializers.IntegerField(read_only=True)
     seniority = serializers.ReadOnlyField()
     hourly_rate = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
@@ -32,6 +36,7 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'id_type',
             'id_number',
             'full_name',
+            'photo',
             'birth_date',
             'age',
             'sex',
@@ -88,6 +93,17 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'dependents_count',
             'socioeconomic_stratum',
         ]
+
+    # The photo is uploaded through its own endpoint, and the url points there and not to
+    # MEDIA_URL, so the file goes out behind the same row scope as the rest (6.4)
+    def get_photo(self, employee: Employee) -> str | None:
+        if not employee.photo:
+            return None
+
+        url = reverse('employees.employee-photo', args=[employee.pk])
+        version = Path(employee.photo.name).stem
+
+        return self.context['request'].build_absolute_uri(f'{url}?v={version}')
 
     def validate(self, attrs: dict) -> dict:
         attrs = super().validate(attrs)

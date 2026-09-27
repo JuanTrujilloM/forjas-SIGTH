@@ -1,7 +1,7 @@
 # external libraries imports
 from decimal import ROUND_HALF_UP, Decimal
 
-from django.core.validators import RegexValidator
+from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
@@ -31,6 +31,8 @@ from employees.enums import (
     Sex,
     SocioeconomicStratum,
 )
+from employees.services import EmployeePhotoPath
+from employees.validators import EmployeePhotoValidator
 
 from .Position import Position
 
@@ -58,6 +60,19 @@ class Employee(models.Model):
         help_text='Único sin importar el tipo: al pasar de T.I. a cédula se conserva el registro',
     )
     full_name = models.CharField(max_length=200, verbose_name='Apellidos y nombres')
+    # PENDING (12, #12): stored in the provisional MEDIA_ROOT until IT decides where
+    # uploaded files live and how they are backed up
+    photo = models.ImageField(
+        upload_to=EmployeePhotoPath(),
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp']),
+            EmployeePhotoValidator(),
+        ],
+        verbose_name='Foto',
+        help_text='JPG, PNG o WebP de máximo 5 MB',
+    )
     birth_date = models.DateField(null=True, blank=True, verbose_name='Fecha de nacimiento')
     sex = models.CharField(max_length=10, choices=Sex.choices, blank=True, verbose_name='Sexo')
     blood_type = models.CharField(

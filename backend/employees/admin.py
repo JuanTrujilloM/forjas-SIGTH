@@ -47,7 +47,7 @@ class ContractExtensionInline(EmployeePolicyAdminMixin, admin.TabularInline):
 class EmployeeAdmin(EmployeePolicyAdminMixin, SimpleHistoryAdmin):
     fieldsets = (
         ('Identidad', {'fields': (
-            'status', 'id_type', 'id_number', 'full_name', 'birth_date', 'age', 'sex',
+            'status', 'id_type', 'id_number', 'full_name', 'photo', 'birth_date', 'age', 'sex',
             'blood_type', 'marital_status',
         )}),
         ('Contacto y educación', {'fields': (

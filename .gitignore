@@ -17,6 +17,7 @@ frontend/node_modules/
 frontend/dist/
 
 # Employee data
+backend/media/
 *.xlsx
 *.xls
 *.csv

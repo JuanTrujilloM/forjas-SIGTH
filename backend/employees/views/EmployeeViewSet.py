@@ -1,7 +1,9 @@
 # external libraries imports
+from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -12,8 +14,10 @@ from employees.models import Employee
 from employees.serializers import (
     ContractExtensionSerializer,
     EmployeeListSerializer,
+    EmployeePhotoSerializer,
     EmployeeSerializer,
 )
+from employees.services import EmployeePhotoService
 from users.access import (
     EmployeeFieldOrderingFilter,
     EmployeeFieldPolicy,
@@ -66,3 +70,30 @@ class EmployeeViewSet(
         serializer.save(employee=self.get_object())
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        detail=True,
+        methods=['get', 'put', 'delete'],
+        parser_classes=[MultiPartParser],
+        serializer_class=EmployeePhotoSerializer,
+    )
+    def photo(self, request: Request, pk: str | None = None):
+        employee = self.get_object()
+
+        if 'photo' not in EmployeeFieldPolicy.readable_fields(request.user):
+            raise Http404
+
+        if request.method == 'GET':
+            return EmployeePhotoService.response(employee.photo.name if employee.photo else '')
+
+        if request.method == 'DELETE':
+            EmployeePhotoService.remove(employee)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        serializer = EmployeePhotoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        EmployeePhotoService.replace(employee, serializer.validated_data['photo'])
+
+        return Response(
+            {'photo': EmployeeSerializer(employee, context={'request': request}).data['photo']}
+        )

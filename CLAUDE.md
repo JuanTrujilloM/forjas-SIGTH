@@ -99,6 +99,7 @@ forjas-SIGTH/
 | Filtros | `django-filter` | Filtrado declarativo sobre los viewsets |
 | Auditoría | `django-simple-history` | §5.2 |
 | Excel | `openpyxl` | Importar el archivo actual y exportar listados |
+| Imágenes | `Pillow` | Que `ImageField` compruebe que la foto de un empleado es de verdad una imagen (§5.4) |
 | Configuración | `python-decouple` | Todo lo que cambia entre entornos sale de `.env` |
 | Lint | `flake8` | `backend/.flake8`, línea máx. 100 |
 
@@ -242,8 +243,6 @@ Previstos en el diseño, fuera de esta fase:
 
 - **Formación** — un catálogo de formaciones y una tabla intermedia empleado–formación con
   sus datos propios (fecha, por ejemplo). Espera la lista de SST (§12 #13).
-- **Foto** — un campo de archivo en `Employee`. Espera que TI defina dónde se guardan los
-  archivos (§12 #12).
 
 ### 5.2 Auditoría e historial
 
@@ -277,6 +276,27 @@ usuario lo produjo.
 - Borrado: `on_delete=models.PROTECT` por defecto. **No se borran registros de personas**:
   un empleado se retira con su `status`; los catálogos y las cuentas se desactivan con
   `is_active`.
+
+### 5.4 Foto del empleado
+
+**Provisional hasta que TI decida dónde viven los archivos (§12 #12).**
+
+- `Employee.photo` es un `ImageField`. Solo JPG, PNG o WebP de hasta 5 MB. Pillow abre
+  el archivo para comprobar que es una imagen: un SVG o un HTML renombrado a `.jpg` se
+  rechaza.
+- Se guarda en disco, en `MEDIA_ROOT` (del `.env`; vacío usa `backend/media/`, solo para
+  desarrollo), con un **nombre aleatorio** y la extensión del formato real. El nombre
+  original se descarta porque suele traer el nombre de la persona.
+- **No hay una ruta pública `/media/`.** Una foto es un dato personal, y un archivo
+  servido por el servidor web lo vería cualquiera con el enlace. La foto sale por
+  `GET /api/employees/{id}/photo/`, que pasa por el mismo recorte de filas y columnas
+  que el resto (§6). Solo el admin la ve en `/media/...`, y solo quien entra a esa parte
+  del admin (§6.3).
+- Solo Talento Humano la sube (`PUT`, multipart) o la quita (`DELETE`), desde el detalle
+  del empleado o desde el admin.
+- **El archivo anterior no se borra** al cambiar o quitar la foto: el historial del
+  empleado sigue apuntando a él. Se podrá limpiar cuando exista la regla de retención
+  del historial (§5.2).
 
 ---
 
@@ -324,7 +344,7 @@ La matriz es la de la especificación de Talento Humano:
 
 | Bloque | Campos | TH | Gerencia | Director / Líder | SST - SGI |
 |---|---|:-:|:-:|:-:|:-:|
-| Identidad | estado, tipo y número de identificación, nombre, fecha de nacimiento, edad, sexo, grupo sanguíneo, estado civil | ✔ | ✔ | ✔ | ✔ |
+| Identidad | estado, tipo y número de identificación, nombre, foto, fecha de nacimiento, edad, sexo, grupo sanguíneo, estado civil | ✔ | ✔ | ✔ | ✔ |
 | Contacto y educación | hijos, celular, correo, dirección de residencia, barrio, ciudad, nivel educativo, título | ✔ | ✔ | ✔ | ✘ |
 | Laboral | vinculación, categoría, dirección, grupo de evaluación, pacto colectivo, cargo actual y anterior con sus fechas, es líder, sección, centro de costos, área, rol adicional, jefe inmediato, fecha de ingreso, antigüedad | ✔ | ✔ | ✔ | ✔ |
 | Salario y contrato | salario, tipo de salario, valor hora, auxilio de transporte, tipo de contrato, fecha de vencimiento, prórrogas, prórroga indefinido | ✔ | ✔ | ✔ | ✘ |
@@ -676,6 +696,7 @@ Nunca se trabaja directo sobre `main`.
 - **Datos de empleados**: `*.xlsx`, `*.xls`, `*.csv`. El Excel de Talento Humano **no
   entra al repositorio** en ninguna circunstancia, ni siquiera recortado o para probar la
   importación. Si hace falta un archivo de ejemplo, se inventan los datos.
+- **Archivos subidos**: `backend/media/`, la carpeta provisional de las fotos (§5.4).
 - Archivos de sistema y editor: `.DS_Store`, `.idea/`, `.vscode/`.
 
 Si un secreto o un archivo con datos de personas se commitea por error, no basta con
@@ -715,7 +736,7 @@ números no se corren ni se reutilizan** al cerrar una fila, para que las citas
 | 9 | Guía de montaje de SQL Server en Windows | — | `docs/sql-server-local-windows.md` (§9.1) |
 | 10 | **Límite de intentos de ingreso fallidos** — hoy el login no tiene ninguno | Seguridad de la Información | `users/views/LoginView.py`, `docs/autenticacion.md` |
 | 11 | **Quién administra el esquema de la base**: Django con migraciones, o TI con sus scripts (`managed = False` + `db_table`). Si es TI: qué tablas (¿solo negocio, o también usuarios e historial?), con qué nombres y tipos. Cerrarlo antes del primer despliegue a producción | TI | §9, `Meta` de cada modelo, permiso `db_ddladmin` de `sigth_app` (§10.2) |
-| 12 | **Foto del empleado**: dónde se guardan los archivos en producción y cómo se respaldan | TI | Campo de archivo en `Employee` (§5.1) y la dependencia Pillow para validar imágenes |
+| 12 | **Dónde viven los archivos subidos en producción** y cómo se respaldan. Hoy van a una carpeta local provisional (`MEDIA_ROOT`) | TI | §5.4, `MEDIA_ROOT` en `.env` |
 | 13 | **Formación**: la lista de AROs y formaciones, y qué se registra de cada una | SST | Catálogo de formaciones + tabla empleado–formación (§5.1) |
 | 14 | Qué contiene el campo "Prórroga indefinido"; hoy es texto libre | Talento Humano | `Employee.indefinite_extension` |
 | 15 | Qué campos del empleado son obligatorios; hoy solo estado, identificación y nombre | Talento Humano | `employees/models/Employee.py` |
