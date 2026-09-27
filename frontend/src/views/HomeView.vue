@@ -1,53 +1,44 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 
-import BaseService from '@/shared/services/BaseService'
+import AppHeader from '@/components/AppHeader.vue'
 import { useSessionStore } from '@/stores/session'
 
-const router = useRouter()
 const session = useSessionStore()
 
-const isLoading = ref(false)
-const errorMessage = ref<string | null>(null)
+const scopeDescription = computed<string>(() => {
+  const user = session.user
 
-async function logout(): Promise<void> {
-  isLoading.value = true
-  errorMessage.value = null
-
-  try {
-    await session.logout()
-    await router.replace({ name: 'login' })
-  } catch (error) {
-    errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo cerrar la sesión.')
-  } finally {
-    isLoading.value = false
+  if (!user?.profile) {
+    return 'Tu cuenta no tiene un perfil de acceso: no ve información de empleados.'
   }
-}
+
+  if (user.sees_every_employee) {
+    return 'Ves la información de todos los empleados.'
+  }
+
+  if (user.profile === 'director') {
+    return `Ves los empleados de la ${user.division_name ?? 'dirección asignada'}.`
+  }
+
+  return user.section_names.length
+    ? `Ves los empleados de las secciones: ${user.section_names.join(', ')}.`
+    : 'Tu cuenta no tiene secciones a cargo asignadas.'
+})
 </script>
 
 <template>
+  <AppHeader />
+
   <main class="container py-5">
     <h1 class="h3 mb-1">Hola, {{ session.user?.full_name }}</h1>
 
-    <p class="text-secondary">
-      <template v-if="session.user?.sees_every_division">
-        Ves la información de todas las direcciones.
-      </template>
-      <template v-else-if="session.user?.division_name">
-        Dirección: {{ session.user.division_name }}
-      </template>
-      <template v-else>Tu cuenta no está asociada a ninguna dirección.</template>
-    </p>
+    <p class="text-secondary mb-1">Perfil: {{ session.user?.profile_name || 'Sin perfil' }}</p>
 
-    <div v-if="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
+    <p class="text-secondary">{{ scopeDescription }}</p>
 
-    <div class="alert alert-secondary" role="status">
-      La consulta de empleados todavía no está disponible.
-    </div>
-
-    <button class="btn btn-primary" :disabled="isLoading" @click="logout">
-      {{ isLoading ? 'Cerrando sesión…' : 'Cerrar sesión' }}
-    </button>
+    <RouterLink v-if="session.user?.profile" class="btn btn-primary" :to="{ name: 'employees' }">
+      Ver empleados
+    </RouterLink>
   </main>
 </template>

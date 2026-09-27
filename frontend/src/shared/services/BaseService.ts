@@ -37,4 +37,21 @@ export default class BaseService {
 
     return fieldError?.[0] ?? `La API respondió con estado ${error.response.status}.`
   }
+
+  public static getApiFieldErrors(error: unknown): Record<string, string> {
+    if (!axios.isAxiosError(error) || error.response?.status !== 400) {
+      return {}
+    }
+
+    const data = (error.response.data ?? {}) as Record<string, unknown>
+    const fieldErrors: Record<string, string> = {}
+
+    for (const [field, messages] of Object.entries(data)) {
+      if (Array.isArray(messages) && typeof messages[0] === 'string') {
+        fieldErrors[field] = messages[0]
+      }
+    }
+
+    return fieldErrors
+  }
 }

@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { useSessionStore } from '@/stores/session'
+import EmployeeDetailView from '@/views/EmployeeDetailView.vue'
+import EmployeeFormView from '@/views/EmployeeFormView.vue'
+import EmployeeListView from '@/views/EmployeeListView.vue'
 import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 
@@ -9,6 +12,30 @@ const routes = [
   { path: '/', redirect: { name: 'home' } },
   { path: '/ingreso', name: 'login', component: LoginView },
   { path: '/inicio', name: 'home', component: HomeView, meta: { requiresAuth: true } },
+  {
+    path: '/empleados',
+    name: 'employees',
+    component: EmployeeListView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/empleados/nuevo',
+    name: 'employee-create',
+    component: EmployeeFormView,
+    meta: { requiresAuth: true, requiresEditor: true },
+  },
+  {
+    path: '/empleados/:id(\\d+)',
+    name: 'employee-detail',
+    component: EmployeeDetailView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/empleados/:id(\\d+)/editar',
+    name: 'employee-edit',
+    component: EmployeeFormView,
+    meta: { requiresAuth: true, requiresEditor: true },
+  },
 ]
 
 const router = createRouter({
@@ -29,6 +56,11 @@ router.beforeEach(async (to) => {
 
   if (to.name === 'login' && session.isAuthenticated) {
     return { name: 'home' }
+  }
+
+  // interface convenience only: the backend refuses the write anyway (8.3)
+  if (to.meta.requiresEditor && !session.user?.can_edit_employees) {
+    return { name: 'employees' }
   }
 
   return true
