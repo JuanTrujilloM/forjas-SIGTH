@@ -1,5 +1,5 @@
 # internal application code imports
-from .DivisionScopePolicy import DivisionScopePolicy
-from .mixins import DivisionScopedMixin
+from .EmployeeScopePolicy import EmployeeScopePolicy
+from .mixins import EmployeeScopedMixin
 
-__all__ = ['DivisionScopePolicy', 'DivisionScopedMixin']
+__all__ = ['EmployeeScopePolicy', 'EmployeeScopedMixin']

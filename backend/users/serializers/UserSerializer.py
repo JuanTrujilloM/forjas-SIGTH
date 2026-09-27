@@ -2,15 +2,17 @@
 from rest_framework import serializers
 
 # internal application code imports
-from users.access import DivisionScopePolicy
+from users.access import EmployeeScopePolicy
 from users.models import User
 
 
 # main class
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
+    profile_name = serializers.CharField(source='get_profile_display', read_only=True)
     division_name = serializers.CharField(source='division.name', read_only=True, default=None)
-    sees_every_division = serializers.SerializerMethodField()
+    section_names = serializers.SerializerMethodField()
+    sees_every_employee = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -20,14 +22,20 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'full_name',
+            'profile',
+            'profile_name',
             'division',
             'division_name',
-            'sees_every_division',
+            'section_names',
+            'sees_every_employee',
         ]
         read_only_fields = fields
 
     def get_full_name(self, user: User) -> str:
         return user.get_full_name() or user.email
-    
-    def get_sees_every_division(self, user: User) -> bool:
-        return DivisionScopePolicy.sees_every_division(user)
+
+    def get_section_names(self, user: User) -> list[str]:
+        return [section.name for section in user.sections.all()]
+
+    def get_sees_every_employee(self, user: User) -> bool:
+        return EmployeeScopePolicy.sees_every_employee(user)

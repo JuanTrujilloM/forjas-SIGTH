@@ -3,7 +3,9 @@ from django.db import models
 
 
 # main class
-class Division(models.Model):
+# What the business also calls a "process". It does not hang from a division: the
+# specification keeps division and section as two independent employee fields (5.1).
+class Section(models.Model):
     # fields
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=120, unique=True, verbose_name='Nombre')
@@ -15,8 +17,8 @@ class Division(models.Model):
 
     class Meta:
         ordering = ['name']
-        verbose_name = 'Dirección'
-        verbose_name_plural = 'Direcciones'
+        verbose_name = 'Sección'
+        verbose_name_plural = 'Secciones'
 
     def __str__(self):
         return self.name
