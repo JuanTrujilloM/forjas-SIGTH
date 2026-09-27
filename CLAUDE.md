@@ -133,7 +133,9 @@ forjas-SIGTH/
 ### 4.1 Rutas
 
 - **Las rutas visibles al usuario van en español**: son las del frontend y las lee gente
-  de la empresa. `/ingreso`, `/inicio`, `/empleados`, `/empleados/:id`.
+  de la empresa. `/ingreso`, `/empleados`, `/empleados/:id`. **La lista de empleados es
+  la pantalla de inicio**: `/` y el ingreso llevan ahí. El nombre, el perfil y el alcance
+  de quien entró se ven siempre, en la franja fija bajo la barra superior.
 - Los endpoints de la API van en inglés, igual que los identificadores del código:
   `/api/employees/`. No los ve el usuario final.
 - Todo cuelga de `/api/`. **Sin prefijo de versión** (`/api/v1/`): el frontend es el único

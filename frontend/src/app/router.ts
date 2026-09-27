@@ -4,14 +4,12 @@ import { useSessionStore } from '@/stores/session'
 import EmployeeDetailView from '@/views/EmployeeDetailView.vue'
 import EmployeeFormView from '@/views/EmployeeFormView.vue'
 import EmployeeListView from '@/views/EmployeeListView.vue'
-import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 
 // main code
 const routes = [
-  { path: '/', redirect: { name: 'home' } },
+  { path: '/', redirect: { name: 'employees' } },
   { path: '/ingreso', name: 'login', component: LoginView },
-  { path: '/inicio', name: 'home', component: HomeView, meta: { requiresAuth: true } },
   {
     path: '/empleados',
     name: 'employees',
@@ -55,7 +53,7 @@ router.beforeEach(async (to) => {
   }
 
   if (to.name === 'login' && session.isAuthenticated) {
-    return { name: 'home' }
+    return { name: 'employees' }
   }
 
   // interface convenience only: the backend refuses the write anyway (8.3)

@@ -12,6 +12,9 @@ import type { CatalogItem } from '@/types/organization.types'
 
 const session = useSessionStore()
 
+// an account with no profile gets an empty list anyway; this only says why (6.1)
+const hasProfile = Boolean(session.user?.profile)
+
 const page = ref<Page<EmployeeListItem> | null>(null)
 const choices = ref<EmployeeChoices>({})
 const divisions = ref<CatalogItem[]>([])
@@ -72,6 +75,10 @@ watch(search, () => {
 })
 
 onMounted(() => {
+  if (!hasProfile) {
+    return
+  }
+
   loadFilters()
   loadEmployees()
 })
@@ -93,7 +100,11 @@ onMounted(() => {
       </RouterLink>
     </div>
 
-    <form class="row g-2 mb-3" role="search" @submit.prevent>
+    <div v-if="!hasProfile" class="alert alert-secondary" role="status">
+      Tu cuenta no tiene un perfil de acceso. Pídele a TI que te lo asigne.
+    </div>
+
+    <form v-else class="row g-2 mb-3" role="search" @submit.prevent>
       <div class="col-12 col-md-4">
         <label class="visually-hidden" for="search">Buscar</label>
         <input

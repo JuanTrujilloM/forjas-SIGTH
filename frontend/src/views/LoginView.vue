@@ -52,7 +52,7 @@ async function submit(): Promise<void> {
     await session.login({ email: email.value.trim(), password: password.value })
 
     const destination = route.query.destino
-    await router.replace(typeof destination === 'string' ? destination : { name: 'home' })
+    await router.replace(typeof destination === 'string' ? destination : { name: 'employees' })
   } catch (error) {
     errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo iniciar sesión.')
   } finally {
