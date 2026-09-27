@@ -2,6 +2,7 @@
 from django.db.models import QuerySet
 
 # internal application code imports
+from users.access.EmployeeFieldPolicy import EmployeeFieldPolicy
 from users.access.EmployeeScopePolicy import EmployeeScopePolicy
 
 
@@ -22,3 +23,17 @@ class EmployeeScopedMixin:
             self.division_lookup,
             self.section_lookup,
         )
+
+
+# Applies the column scope to a serializer (6.4). Without a request in the context it
+# drops every field but the id: a serializer used out of a view exposes nothing.
+class EmployeeFieldsMixin:
+    def get_fields(self) -> dict:
+        request = self.context.get('request')
+        readable = EmployeeFieldPolicy.readable_fields(getattr(request, 'user', None))
+
+        return {
+            name: field
+            for name, field in super().get_fields().items()
+            if name == 'id' or name in readable
+        }

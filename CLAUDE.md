@@ -355,8 +355,8 @@ La matriz es la de la especificación de Talento Humano:
 - Las filas se recortan en **`get_queryset()`**, no en el serializer ni en el frontend:
   si el registro no está en el queryset, no sale por ninguna ruta, ni siquiera pidiendo
   el detalle por `id` a mano. Un empleado fuera de alcance responde **404, no 403**.
-- Las columnas se recortan en el **serializer**, y los filtros y el orden se restringen
-  a las columnas visibles.
+- Las columnas se recortan en el **serializer**, y los filtros, el orden y la búsqueda
+  se restringen a las columnas visibles.
 - Los serializers listan sus campos explícitamente. **Nunca `fields = '__all__'`.**
 
 En el código, en `users/access/`:
@@ -373,8 +373,9 @@ En el código, en `users/access/`:
   relación indirecta.
 - **`EmployeeFieldsMixin`** — aplica las columnas. Se antepone al serializer y descarta
   los campos que el perfil no ve.
-- **`EmployeeFieldFilterSet`** y **`EmployeeFieldOrderingFilter`** — aplican las columnas
-  a los filtros y al orden.
+- **`EmployeeFieldFilterSet`**, **`EmployeeFieldOrderingFilter`** y
+  **`EmployeeFieldSearchFilter`** — aplican las columnas a los filtros, al orden y a la
+  búsqueda.
 - **`EmployeeWritePermission`** — aplica la escritura en las vistas.
 
 **Hay dos formas de romper el acceso, y por eso se revisan en cada vista y serializer

@@ -2,7 +2,7 @@
 from rest_framework import serializers
 
 # internal application code imports
-from users.access import EmployeeScopePolicy
+from users.access import EmployeeFieldPolicy, EmployeeScopePolicy
 from users.models import User
 
 
@@ -13,6 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
     division_name = serializers.CharField(source='division.name', read_only=True, default=None)
     section_names = serializers.SerializerMethodField()
     sees_every_employee = serializers.SerializerMethodField()
+    can_edit_employees = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -28,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
             'division_name',
             'section_names',
             'sees_every_employee',
+            'can_edit_employees',
         ]
         read_only_fields = fields
 
@@ -39,3 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_sees_every_employee(self, user: User) -> bool:
         return EmployeeScopePolicy.sees_every_employee(user)
+
+    def get_can_edit_employees(self, user: User) -> bool:
+        return EmployeeFieldPolicy.can_write(user)
