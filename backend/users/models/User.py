@@ -71,6 +71,18 @@ class User(AbstractUser):
     def __str__(self):
         return self.get_full_name() or self.email
 
+    def save(self, *args, **kwargs):
+        # last_login is left out of the history, so a login alone must not add a record
+        if set(kwargs.get('update_fields') or ()) == {'last_login'}:
+            self.skip_history_when_saving = True
+
+            try:
+                return super().save(*args, **kwargs)
+            finally:
+                del self.skip_history_when_saving
+
+        return super().save(*args, **kwargs)
+
     def clean(self):
         super().clean()
 
