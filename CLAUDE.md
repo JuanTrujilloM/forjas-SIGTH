@@ -416,6 +416,7 @@ las columnas.
 ├── enums/          choices y constantes
 ├── filters/        filtersets de django-filter, uno por archivo
 ├── managers/       managers de modelo
+├── management/     comandos de manage.py (commands/)
 ├── migrations/
 ├── models/         un archivo por modelo
 ├── serializers/    un archivo por serializer
@@ -615,7 +616,26 @@ las crean ellos y Django solo lee y escribe. Pasar a eso después es barato mien
 datos reales en producción; con datos cargados, cualquier cambio de nombres o de tipos
 exige migrar los datos.
 
-### 9.1 Guías de montaje
+### 9.1 Datos de demostración
+
+```bash
+python manage.py seed_demo_employees            # crea ~80 empleados inventados
+python manage.py seed_demo_employees --replace  # los borra y los vuelve a crear
+```
+
+- **Datos inventados**, sobre la estructura real del organigrama: nombres genéricos,
+  jefes coherentes, salarios por rol, contratos con prórrogas, retirados, un aprendiz con
+  T.I., extranjeros con CE o PPT, y fotos generadas con las iniciales. Nunca se copian
+  filas del archivo real (§11.2).
+- **Solo corre con `DEBUG=True`.** Usa un rango de identificaciones reservado
+  (`9000000001`–`9000009999`), así `--replace` borra únicamente sus propios empleados,
+  con su historial y sus fotos.
+- Agrega al catálogo de cargos los del organigrama que no venían en la especificación
+  (directores, líderes, analistas). Esos cargos se quedan: son los que Talento Humano
+  tendría que crear de todas formas.
+- Los datos son reproducibles: la misma `--seed` genera los mismos empleados.
+
+### 9.2 Guías de montaje
 
 - **`docs/sql-server-local.md`** — montaje en macOS con Apple Silicon (Docker emulado +
   Homebrew). Escrita sobre una máquina real; sigue siendo válida para quien trabaje en Mac.
@@ -735,7 +755,7 @@ números no se corren ni se reutilizan** al cerrar una fila, para que las citas
 | 6 | Tiempo de inactividad de la sesión | Seguridad de la Información | `SESSION_COOKIE_AGE`, hoy 8 horas |
 | 7 | Collation real de la instancia de producción | TI | Orden y comparación de `ñ` y tildes en búsquedas de apellidos |
 | 8 | Servidor de despliegue: versión de SQL Server, sistema operativo y proceso | TI | §10.3, `docs/sql-server-local.md` §2; se asumió SQL Server 2022 |
-| 9 | Guía de montaje de SQL Server en Windows | — | `docs/sql-server-local-windows.md` (§9.1) |
+| 9 | Guía de montaje de SQL Server en Windows | — | `docs/sql-server-local-windows.md` (§9.2) |
 | 10 | **Límite de intentos de ingreso fallidos** — hoy el login no tiene ninguno | Seguridad de la Información | `users/views/LoginView.py`, `docs/autenticacion.md` |
 | 11 | **Quién administra el esquema de la base**: Django con migraciones, o TI con sus scripts (`managed = False` + `db_table`). Si es TI: qué tablas (¿solo negocio, o también usuarios e historial?), con qué nombres y tipos. Cerrarlo antes del primer despliegue a producción | TI | §9, `Meta` de cada modelo, permiso `db_ddladmin` de `sigth_app` (§10.2) |
 | 12 | **Dónde viven los archivos subidos en producción** y cómo se respaldan. Hoy van a una carpeta local provisional (`MEDIA_ROOT`) | TI | §5.4, `MEDIA_ROOT` en `.env` |
