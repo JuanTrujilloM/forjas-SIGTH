@@ -168,9 +168,27 @@ onMounted(() => {
           <tbody>
             <tr v-for="employee in page.results" :key="employee.id">
               <td>
-                <RouterLink :to="{ name: 'employee-detail', params: { id: employee.id } }">
-                  {{ employee.full_name }}
-                </RouterLink>
+                <div class="d-flex align-items-center gap-2">
+                  <img
+                    v-if="employee.photo_thumbnail"
+                    class="rounded border object-fit-cover flex-shrink-0"
+                    :src="employee.photo_thumbnail"
+                    alt=""
+                    width="40"
+                    height="50"
+                    loading="lazy"
+                  />
+                  <span
+                    v-else-if="'photo_thumbnail' in employee"
+                    class="rounded border bg-light flex-shrink-0"
+                    style="width: 40px; height: 50px"
+                    aria-hidden="true"
+                  ></span>
+
+                  <RouterLink :to="{ name: 'employee-detail', params: { id: employee.id } }">
+                    {{ employee.full_name }}
+                  </RouterLink>
+                </div>
               </td>
               <td>
                 {{ formatChoice(choices, 'id_type', employee.id_type) }} {{ employee.id_number }}

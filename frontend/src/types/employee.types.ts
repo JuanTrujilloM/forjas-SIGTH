@@ -28,6 +28,7 @@ export interface EmployeeListItem {
   id_type: string
   id_number: number
   full_name: string
+  photo_thumbnail?: string | null
   division_name: string | null
   section_name: string | null
   position_name: string | null
