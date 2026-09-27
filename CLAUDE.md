@@ -296,6 +296,10 @@ usuario lo produjo.
   del admin (§6.3).
 - Solo Talento Humano la sube (`PUT`, multipart) o la quita (`DELETE`), desde el detalle
   del empleado o desde el admin.
+- **Miniatura para el listado**: `GET .../photo/?size=thumb` devuelve un JPEG de 80×100.
+  Se genera la primera vez que se pide y se guarda junto a la foto
+  (`<nombre>.thumb.jpg`), así cubre también las fotos subidas por el admin. El listado
+  nunca descarga la foto completa, que puede pesar hasta 5 MB.
 - **El archivo anterior no se borra** al cambiar o quitar la foto: el historial del
   empleado sigue apuntando a él. Se podrá limpiar cuando exista la regla de retención
   del historial (§5.2).

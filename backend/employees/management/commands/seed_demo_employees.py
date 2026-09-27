@@ -37,6 +37,7 @@ from employees.enums import (
     Sex,
 )
 from employees.models import ContractExtension, Employee, Position
+from employees.services import EmployeePhotoService
 from users.models import Division, Section
 
 from ._demo_roster import (
@@ -232,7 +233,8 @@ class Command(BaseCommand):
         ContractExtension.history.filter(employee_id__in=ids).delete()
         Employee.history.filter(id__in=ids).delete()
 
-        transaction.on_commit(lambda: [default_storage.delete(name) for name in photos])
+        files = photos | {EmployeePhotoService.thumbnail_name(name) for name in photos}
+        transaction.on_commit(lambda: [default_storage.delete(name) for name in files])
 
     def _create_roster(self) -> list[Employee]:
         divisions = {division.name: division for division in Division.objects.all()}

@@ -84,7 +84,12 @@ class EmployeeViewSet(
             raise Http404
 
         if request.method == 'GET':
-            return EmployeePhotoService.response(employee.photo.name if employee.photo else '')
+            name = employee.photo.name if employee.photo else ''
+
+            if request.query_params.get('size') == 'thumb':
+                return EmployeePhotoService.thumbnail_response(name)
+
+            return EmployeePhotoService.response(name)
 
         if request.method == 'DELETE':
             EmployeePhotoService.remove(employee)
