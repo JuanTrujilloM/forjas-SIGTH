@@ -625,6 +625,7 @@ exige migrar los datos.
 ```bash
 python manage.py seed_demo_employees            # crea ~80 empleados inventados
 python manage.py seed_demo_employees --replace  # los borra y los vuelve a crear
+python manage.py seed_demo_users                # una cuenta por perfil, para probar el acceso
 ```
 
 - **Datos inventados**, sobre la estructura real del organigrama: nombres genéricos,
@@ -638,6 +639,12 @@ python manage.py seed_demo_employees --replace  # los borra y los vuelve a crear
   (directores, líderes, analistas). Esos cargos se quedan: son los que Talento Humano
   tendría que crear de todas formas.
 - Los datos son reproducibles: la misma `--seed` genera los mismos empleados.
+- **Cuentas de demostración** (`seed_demo_users`): `demo.<perfil>@<dominio corporativo>`,
+  una por perfil — `talento`, `gerencia`, `sst`, `director` (Procesos Técnicos), `lider`
+  (Calidad y Mantenimiento, para ver un líder con varias secciones), `coordinador`
+  (Soldadura) y `ti` (sin perfil, entra al admin en solo lectura). La contraseña de todas
+  es `DEMO_USERS_PASSWORD` del `.env`: no se pasa por la línea de comandos (§10.2) y no
+  hay una contraseña conocida escrita en el repositorio.
 
 ### 9.2 Guías de montaje
 
