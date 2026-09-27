@@ -53,6 +53,7 @@ class Employee(models.Model):
     )
     id_number = models.PositiveBigIntegerField(
         unique=True,
+        error_messages={'unique': 'Ya existe un empleado con esta identificación.'},
         verbose_name='Identificación',
         help_text='Único sin importar el tipo: al pasar de T.I. a cédula se conserva el registro',
     )

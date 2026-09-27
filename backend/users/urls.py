@@ -3,10 +3,19 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 # internal application code imports
-from .views import CsrfTokenView, CurrentUserView, LoginView, LogoutView
+from .views import (
+    CsrfTokenView,
+    CurrentUserView,
+    DivisionViewSet,
+    LoginView,
+    LogoutView,
+    SectionViewSet,
+)
 
 # main code
 router = DefaultRouter()
+router.register('divisions', DivisionViewSet, basename='users.division')
+router.register('sections', SectionViewSet, basename='users.section')
 
 urlpatterns = [
     path('', include(router.urls)),

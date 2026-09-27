@@ -392,6 +392,7 @@ las columnas.
 ```
 <app>/
 ├── enums/          choices y constantes
+├── filters/        filtersets de django-filter, uno por archivo
 ├── managers/       managers de modelo
 ├── migrations/
 ├── models/         un archivo por modelo
