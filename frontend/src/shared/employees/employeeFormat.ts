@@ -89,3 +89,16 @@ export function formatChoice(
 
   return choices[field]?.find((option) => option.value === value)?.label ?? String(value)
 }
+
+export function daysUntil(value: string | null | undefined): number | null {
+  if (!value) {
+    return null
+  }
+
+  const [year, month, day] = splitDate(value)
+  const today = new Date()
+  const target = Date.UTC(year, month - 1, day)
+  const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+
+  return Math.round((target - start) / 86_400_000)
+}

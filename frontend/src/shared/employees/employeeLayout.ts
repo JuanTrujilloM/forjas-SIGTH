@@ -26,7 +26,18 @@ export interface EmployeeFieldSpec {
   nullable?: boolean
 }
 
+export type EmployeeBlockId =
+  | 'identity'
+  | 'contact_and_education'
+  | 'employment'
+  | 'compensation_and_contract'
+  | 'health_and_risk'
+  | 'pension_and_severance'
+  | 'notes'
+  | 'sociodemographic'
+
 export interface EmployeeBlock {
+  id: EmployeeBlockId
   title: string
   fields: EmployeeFieldSpec[]
 }
@@ -35,6 +46,7 @@ export interface EmployeeBlock {
 // them a user sees is whatever the API returns.
 export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
   {
+    id: 'identity',
     title: 'Identidad',
     fields: [
       { name: 'status', label: 'Estado', kind: 'choice', required: true },
@@ -49,6 +61,7 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
     ],
   },
   {
+    id: 'contact_and_education',
     title: 'Contacto y educación',
     fields: [
       { name: 'has_children', label: 'Tiene hijos', kind: 'boolean' },
@@ -62,6 +75,7 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
     ],
   },
   {
+    id: 'employment',
     title: 'Laboral',
     fields: [
       { name: 'employment_type', label: 'Tipo de vinculación', kind: 'choice' },
@@ -85,6 +99,7 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
     ],
   },
   {
+    id: 'compensation_and_contract',
     title: 'Salario y contrato',
     fields: [
       { name: 'current_salary', label: 'Salario actual', kind: 'money' },
@@ -97,6 +112,7 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
     ],
   },
   {
+    id: 'health_and_risk',
     title: 'Salud y riesgos',
     fields: [
       { name: 'occupational_risk_insurer', label: 'ARL', kind: 'choice' },
@@ -104,6 +120,7 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
     ],
   },
   {
+    id: 'pension_and_severance',
     title: 'Pensión y cesantías',
     fields: [
       { name: 'pension_fund', label: 'Fondo de pensión', kind: 'choice' },
@@ -111,10 +128,12 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
     ],
   },
   {
+    id: 'notes',
     title: 'Observaciones',
     fields: [{ name: 'notes', label: 'Alertas / Observaciones', kind: 'textarea' }],
   },
   {
+    id: 'sociodemographic',
     title: 'Sociodemográfico',
     fields: [
       { name: 'birth_municipality', label: 'Municipio de nacimiento', kind: 'text' },

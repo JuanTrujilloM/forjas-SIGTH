@@ -104,6 +104,12 @@ export interface EmployeePhotoResponse {
   photo: string
 }
 
+export interface EmployeeInfoRow {
+  label: string
+  value: string
+  isEmpty: boolean
+}
+
 export type EmployeeField = Exclude<keyof Employee, 'id'>
 
 export type EmployeePayload = Partial<Record<EmployeeField, unknown>>
