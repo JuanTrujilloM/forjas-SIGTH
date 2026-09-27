@@ -41,6 +41,7 @@ export interface Employee {
   id_type?: string
   id_number?: number
   full_name?: string
+  photo?: string | null
   birth_date?: string | null
   age?: number | null
   sex?: string
@@ -96,6 +97,10 @@ export interface Employee {
   family_composition?: string
   dependents_count?: number | null
   socioeconomic_stratum?: number | null
+}
+
+export interface EmployeePhotoResponse {
+  photo: string
 }
 
 export type EmployeeField = Exclude<keyof Employee, 'id'>

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import AppHeader from '@/components/AppHeader.vue'
+import EmployeePhoto from '@/components/EmployeePhoto.vue'
 import EmployeeService from '@/services/EmployeeService'
 import {
   formatBoolean,
@@ -172,12 +173,23 @@ onMounted(loadEmployee)
     </div>
 
     <template v-else-if="employee">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 my-3">
-        <div>
-          <h1 class="h3 mb-0">{{ employee.full_name }}</h1>
-          <p class="text-secondary mb-0">
-            {{ formatChoice(choices, 'id_type', employee.id_type) }} {{ employee.id_number }}
-          </p>
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 my-3">
+        <div class="d-flex flex-wrap align-items-start gap-3">
+          <EmployeePhoto
+            v-if="'photo' in employee"
+            :photo-url="employee.photo ?? null"
+            @update:photo-url="employee.photo = $event"
+            :employee-id="employee.id"
+            :full-name="employee.full_name ?? ''"
+            :can-edit="Boolean(session.user?.can_edit_employees)"
+          />
+
+          <div>
+            <h1 class="h3 mb-0">{{ employee.full_name }}</h1>
+            <p class="text-secondary mb-0">
+              {{ formatChoice(choices, 'id_type', employee.id_type) }} {{ employee.id_number }}
+            </p>
+          </div>
         </div>
 
         <RouterLink

@@ -6,6 +6,7 @@ import type {
   EmployeeListItem,
   EmployeeListParams,
   EmployeePayload,
+  EmployeePhotoResponse,
   Page,
 } from '@/types/employee.types'
 import type { CatalogItem } from '@/types/organization.types'
@@ -45,6 +46,21 @@ export default class EmployeeService extends BaseService {
         extension_date: extensionDate,
       })
       .then((response) => response.data)
+  }
+
+  public static uploadPhoto(id: number, photo: File): Promise<string> {
+    const body = new FormData()
+    body.append('photo', photo)
+
+    return super.axiosInstance
+      .put<EmployeePhotoResponse>(`${EmployeeService.API_URL}${id}/photo/`, body)
+      .then((response) => response.data.photo)
+  }
+
+  public static removePhoto(id: number): Promise<void> {
+    return super.axiosInstance
+      .delete(`${EmployeeService.API_URL}${id}/photo/`)
+      .then(() => undefined)
   }
 
   public static getChoices(): Promise<EmployeeChoices> {
