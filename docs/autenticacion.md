@@ -73,8 +73,9 @@ cd backend && .venv/Scripts/python.exe manage.py createsuperuser
 ```
 
 Pide el correo — que debe ser del dominio corporativo — y la contraseña sin mostrarla.
-Para una cuenta de negocio, crearla en el admin y asignarle su **dirección**: sin ella la
-cuenta se trata como de TI y la API no le devuelve empleados (§6.1).
+Para una cuenta de negocio, crearla en el admin y asignarle su **perfil** y, según el
+perfil, su dirección (Director) o sus secciones (Líder). Sin perfil, la cuenta se trata
+como de TI y la API no le devuelve empleados (§6.1).
 
 ## 6. Lo que este módulo NO trae
 
