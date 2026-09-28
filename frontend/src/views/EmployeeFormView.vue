@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppHeader from '@/components/AppHeader.vue'
+import EmployeePhotoInput from '@/components/EmployeePhotoInput.vue'
 import EmployeePicker from '@/components/EmployeePicker.vue'
 import EmployeeService from '@/services/EmployeeService'
 import OrganizationService from '@/services/OrganizationService'
@@ -34,8 +35,11 @@ const router = useRouter()
 const employeeId = route.params.id ? Number(route.params.id) : null
 const isEditing = employeeId !== null
 
-const form = ref<Record<string, FormValue>>({ status: 'active' })
+const form = ref<Record<string, FormValue>>({})
 const bossName = ref<string | null>(null)
+const currentPhotoUrl = ref<string | null>(null)
+const photoFile = ref<File | null>(null)
+const removesPhoto = ref(false)
 const choices = ref<EmployeeChoices>({})
 const divisions = ref<CatalogItem[]>([])
 const sections = ref<CatalogItem[]>([])
@@ -48,6 +52,7 @@ const fieldErrors = ref<Record<string, string>>({})
 
 const editableBlocks = computed(() =>
   EMPLOYEE_BLOCKS.map((block) => ({
+    id: block.id,
     title: block.title,
     fields: block.fields.filter((field) => field.kind !== 'computed'),
   })),
@@ -101,9 +106,9 @@ async function load(): Promise<void> {
     sections.value = loadedSections
     positions.value = loadedPositions
 
-    if (employee) {
-      fillForm(employee)
-    }
+    form.value = employee ? valuesOf(employee) : emptyValues()
+    bossName.value = employee?.immediate_boss_name ?? null
+    currentPhotoUrl.value = employee?.photo ?? null
   } catch (error) {
     errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo cargar el formulario.')
   } finally {
@@ -111,7 +116,7 @@ async function load(): Promise<void> {
   }
 }
 
-function fillForm(employee: Employee): void {
+function valuesOf(employee: Employee): Record<string, FormValue> {
   const values: Record<string, FormValue> = {}
 
   for (const block of editableBlocks.value) {
@@ -120,8 +125,22 @@ function fillForm(employee: Employee): void {
     }
   }
 
-  form.value = values
-  bossName.value = employee.immediate_boss_name ?? null
+  return values
+}
+
+// every select needs a value that matches one of its options, or it shows up blank
+function emptyValues(): Record<string, FormValue> {
+  const values: Record<string, FormValue> = { status: 'active' }
+
+  for (const block of editableBlocks.value) {
+    for (const field of block.fields) {
+      if (!(field.name in values)) {
+        values[field.name] = field.kind === 'choice' && !field.nullable ? '' : null
+      }
+    }
+  }
+
+  return values
 }
 
 async function save(): Promise<void> {
@@ -133,13 +152,34 @@ async function save(): Promise<void> {
     const saved = isEditing
       ? await EmployeeService.update(employeeId, buildPayload())
       : await EmployeeService.create(buildPayload())
+    const photoSaved = await savePhoto(saved.id)
 
-    await router.push({ name: 'employee-detail', params: { id: saved.id } })
+    await router.push({
+      name: 'employee-detail',
+      params: { id: saved.id },
+      query: photoSaved ? {} : { aviso: 'foto' },
+    })
   } catch (error) {
     fieldErrors.value = BaseService.getApiFieldErrors(error)
     errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo guardar el empleado.')
   } finally {
     isSaving.value = false
+  }
+}
+
+// The photo has its own endpoint and needs the employee to exist, so it goes after the
+// data. If it fails the employee is already saved: the detail page warns and retries it.
+async function savePhoto(id: number): Promise<boolean> {
+  try {
+    if (photoFile.value) {
+      await EmployeeService.uploadPhoto(id, photoFile.value)
+    } else if (removesPhoto.value && currentPhotoUrl.value) {
+      await EmployeeService.removePhoto(id)
+    }
+
+    return true
+  } catch {
+    return false
   }
 }
 
@@ -170,110 +210,124 @@ onMounted(load)
         <div class="card-body">
           <h2 class="h5 card-title mb-3">{{ block.title }}</h2>
 
-          <div class="row g-3">
-            <div
-              v-for="field in block.fields"
-              :key="field.name"
-              :class="
-                field.kind === 'textarea' || field.kind === 'boss' ? 'col-12' : 'col-md-6 col-lg-4'
-              "
-            >
-              <label class="form-label" :for="field.name">
-                {{ field.label }}<span v-if="field.required" class="text-danger"> *</span>
-              </label>
+          <div class="d-flex flex-column flex-md-row gap-4">
+            <EmployeePhotoInput
+              v-if="block.id === 'identity'"
+              v-model:file="photoFile"
+              v-model:remove="removesPhoto"
+              :current-url="currentPhotoUrl"
+              :disabled="isSaving"
+            />
 
-              <select
-                v-if="field.kind === 'choice'"
-                :id="field.name"
-                v-model="form[field.name]"
-                class="form-select"
-                :class="{ 'is-invalid': fieldErrors[field.name] }"
-                :disabled="isSaving"
+            <div class="row g-3 flex-grow-1 align-content-start">
+              <div
+                v-for="field in block.fields"
+                :key="field.name"
+                :class="
+                  field.kind === 'textarea' || field.kind === 'boss'
+                    ? 'col-12'
+                    : 'col-md-6 col-lg-4'
+                "
               >
-                <option :value="field.nullable ? null : ''">Sin dato</option>
-                <option
-                  v-for="option in choices[field.name]"
-                  :key="option.value"
-                  :value="option.value"
+                <label class="form-label" :for="field.name">
+                  {{ field.label }}<span v-if="field.required" class="text-danger"> *</span>
+                </label>
+
+                <select
+                  v-if="field.kind === 'choice'"
+                  :id="field.name"
+                  v-model="form[field.name]"
+                  class="form-select"
+                  :class="{ 'is-invalid': fieldErrors[field.name] }"
+                  :disabled="isSaving"
                 >
-                  {{ option.label }}
-                </option>
-              </select>
+                  <option :value="field.nullable ? null : ''">Sin dato</option>
+                  <option
+                    v-for="option in choices[field.name]"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+                </select>
 
-              <select
-                v-else-if="field.kind === 'boolean'"
-                :id="field.name"
-                v-model="form[field.name]"
-                class="form-select"
-                :class="{ 'is-invalid': fieldErrors[field.name] }"
-                :disabled="isSaving"
-              >
-                <option :value="null">Sin dato</option>
-                <option :value="true">Sí</option>
-                <option :value="false">No</option>
-              </select>
+                <select
+                  v-else-if="field.kind === 'boolean'"
+                  :id="field.name"
+                  v-model="form[field.name]"
+                  class="form-select"
+                  :class="{ 'is-invalid': fieldErrors[field.name] }"
+                  :disabled="isSaving"
+                >
+                  <option :value="null">Sin dato</option>
+                  <option :value="true">Sí</option>
+                  <option :value="false">No</option>
+                </select>
 
-              <select
-                v-else-if="
-                  field.kind === 'division' || field.kind === 'section' || field.kind === 'position'
-                "
-                :id="field.name"
-                v-model="form[field.name]"
-                class="form-select"
-                :class="{ 'is-invalid': fieldErrors[field.name] }"
-                :disabled="isSaving"
-              >
-                <option :value="null">Sin dato</option>
-                <option v-for="item in selectableItems(field)" :key="item.id" :value="item.id">
-                  {{ item.name }}
-                </option>
-              </select>
+                <select
+                  v-else-if="
+                    field.kind === 'division' ||
+                    field.kind === 'section' ||
+                    field.kind === 'position'
+                  "
+                  :id="field.name"
+                  v-model="form[field.name]"
+                  class="form-select"
+                  :class="{ 'is-invalid': fieldErrors[field.name] }"
+                  :disabled="isSaving"
+                >
+                  <option :value="null">Sin dato</option>
+                  <option v-for="item in selectableItems(field)" :key="item.id" :value="item.id">
+                    {{ item.name }}
+                  </option>
+                </select>
 
-              <EmployeePicker
-                v-else-if="field.kind === 'boss'"
-                :id="field.name"
-                :model-value="(form[field.name] as number | null) ?? null"
-                :selected-label="bossName"
-                :exclude-id="employeeId ?? undefined"
-                :disabled="isSaving"
-                :invalid="Boolean(fieldErrors[field.name])"
-                @update:model-value="form[field.name] = $event"
-              />
+                <EmployeePicker
+                  v-else-if="field.kind === 'boss'"
+                  :id="field.name"
+                  :model-value="(form[field.name] as number | null) ?? null"
+                  :selected-label="bossName"
+                  :exclude-id="employeeId ?? undefined"
+                  :disabled="isSaving"
+                  :invalid="Boolean(fieldErrors[field.name])"
+                  @update:model-value="form[field.name] = $event"
+                />
 
-              <textarea
-                v-else-if="field.kind === 'textarea'"
-                :id="field.name"
-                v-model="form[field.name] as string"
-                class="form-control"
-                :class="{ 'is-invalid': fieldErrors[field.name] }"
-                rows="4"
-                :disabled="isSaving"
-              ></textarea>
+                <textarea
+                  v-else-if="field.kind === 'textarea'"
+                  :id="field.name"
+                  v-model="form[field.name] as string"
+                  class="form-control"
+                  :class="{ 'is-invalid': fieldErrors[field.name] }"
+                  rows="4"
+                  :disabled="isSaving"
+                ></textarea>
 
-              <input
-                v-else
-                :id="field.name"
-                v-model="form[field.name] as string"
-                class="form-control"
-                :class="{ 'is-invalid': fieldErrors[field.name] }"
-                :type="
-                  field.kind === 'date'
-                    ? 'date'
-                    : field.kind === 'email'
-                      ? 'email'
-                      : field.kind === 'number' || field.kind === 'money'
-                        ? 'number'
-                        : 'text'
-                "
-                :inputmode="field.kind === 'digits' ? 'numeric' : undefined"
-                :min="field.kind === 'number' || field.kind === 'money' ? 0 : undefined"
-                :step="field.kind === 'money' ? '0.01' : undefined"
-                :required="field.required"
-                :disabled="isSaving"
-              />
+                <input
+                  v-else
+                  :id="field.name"
+                  v-model="form[field.name] as string"
+                  class="form-control"
+                  :class="{ 'is-invalid': fieldErrors[field.name] }"
+                  :type="
+                    field.kind === 'date'
+                      ? 'date'
+                      : field.kind === 'email'
+                        ? 'email'
+                        : field.kind === 'number' || field.kind === 'money'
+                          ? 'number'
+                          : 'text'
+                  "
+                  :inputmode="field.kind === 'digits' ? 'numeric' : undefined"
+                  :min="field.kind === 'number' || field.kind === 'money' ? 0 : undefined"
+                  :step="field.kind === 'money' ? '0.01' : undefined"
+                  :required="field.required"
+                  :disabled="isSaving"
+                />
 
-              <div v-if="fieldErrors[field.name]" class="invalid-feedback d-block">
-                {{ fieldErrors[field.name] }}
+                <div v-if="fieldErrors[field.name]" class="invalid-feedback d-block">
+                  {{ fieldErrors[field.name] }}
+                </div>
               </div>
             </div>
           </div>

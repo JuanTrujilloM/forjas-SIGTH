@@ -48,6 +48,8 @@ const choices = ref<EmployeeChoices>({})
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 
+const photoFailed = route.query.aviso === 'foto'
+
 const extensionDate = ref('')
 const isAddingExtension = ref(false)
 const extensionError = ref<string | null>(null)
@@ -249,6 +251,11 @@ onMounted(loadEmployee)
           >
             Editar
           </RouterLink>
+        </div>
+
+        <div v-if="photoFailed" class="alert alert-warning" role="alert">
+          Los datos del empleado se guardaron, pero la foto no se pudo subir. Súbela de nuevo desde
+          la sección Identidad.
         </div>
 
         <div class="row g-3">
