@@ -24,51 +24,15 @@ import {
 } from '@/shared/employees/employeeLayout'
 import BaseService from '@/shared/services/BaseService'
 import { useSessionStore } from '@/stores/session'
-import type {
-  Employee,
-  EmployeeChoices,
-  EmployeeField,
-  EmployeeInfoRow,
-} from '@/types/employee.types'
+import type { Employee, EmployeeChoices, EmployeeInfoRow } from '@/types/employee.types'
 
 // main code
-interface StatTile {
-  label: string
-  value: string
-  hint?: string
-  tone?: 'warning' | 'danger'
-}
-
-// Shown once, in the summary or the figures on top, so the cards below do not repeat them
-const SUMMARIZED_FIELDS = new Set<EmployeeField>([
-  'status',
-  'id_type',
-  'id_number',
-  'full_name',
-  'photo',
-  'age',
-  'seniority',
-  'position',
-  'division',
-  'section',
-  'current_salary',
-  'hourly_rate',
-  'transport_allowance',
-  'contract_end_date',
-  'notes',
-])
-
-const CARD_ORDER: EmployeeBlockId[] = [
-  'employment',
-  'compensation_and_contract',
+const WIDE_BLOCKS = new Set<EmployeeBlockId>([
   'identity',
   'contact_and_education',
-  'health_and_risk',
-  'pension_and_severance',
-  'sociodemographic',
-]
-
-const WIDE_CARDS = new Set<EmployeeBlockId>(['employment'])
+  'employment',
+  'compensation_and_contract',
+])
 
 const CONTRACT_WARNING_DAYS = 60
 
@@ -91,79 +55,6 @@ const showsAllExtensions = ref(false)
 
 const canEdit = computed<boolean>(() => Boolean(session.user?.can_edit_employees))
 
-const subtitle = computed<string>(() => {
-  const current = employee.value
-
-  if (!current) {
-    return ''
-  }
-
-  return [current.position_name, current.division_name, current.section_name]
-    .filter((part) => part)
-    .join(' · ')
-})
-
-const summaryPills = computed<string[]>(() => {
-  const current = employee.value
-
-  if (!current) {
-    return []
-  }
-
-  const pills: string[] = []
-
-  if (current.age !== undefined && current.age !== null) {
-    pills.push(`${current.age} años`)
-  }
-
-  if (current.seniority) {
-    pills.push(`${formatSeniority(current.seniority)} en la empresa`)
-  }
-
-  if (current.immediate_boss_name) {
-    pills.push(`Jefe: ${current.immediate_boss_name}`)
-  }
-
-  return pills
-})
-
-const statTiles = computed<StatTile[]>(() => {
-  const current = employee.value
-
-  if (!current) {
-    return []
-  }
-
-  const tiles: StatTile[] = []
-
-  if ('current_salary' in current) {
-    tiles.push({
-      label: 'Salario actual',
-      value: formatMoney(current.current_salary),
-      hint: formatChoice(choices.value, 'salary_type', current.salary_type),
-    })
-  }
-
-  if ('hourly_rate' in current) {
-    tiles.push({ label: 'Valor hora', value: formatMoney(current.hourly_rate) })
-  }
-
-  if ('transport_allowance' in current) {
-    tiles.push({ label: 'Auxilio de transporte', value: formatMoney(current.transport_allowance) })
-  }
-
-  if ('contract_end_date' in current) {
-    tiles.push(contractTile(current))
-  }
-
-  return tiles
-})
-
-// the contract card also holds the extensions, so it stays even with no rows of its own
-const showsCompensation = computed<boolean>(
-  () => employee.value !== null && 'extensions' in employee.value,
-)
-
 const cards = computed(() => {
   const current = employee.value
 
@@ -171,11 +62,11 @@ const cards = computed(() => {
     return []
   }
 
-  return CARD_ORDER.map((id) => EMPLOYEE_BLOCKS.find((block) => block.id === id) as EmployeeBlock)
-    .map((block) => ({ id: block.id, title: block.title, rows: rowsOf(current, block) }))
-    .filter((card) =>
-      card.id === 'compensation_and_contract' ? showsCompensation.value : card.rows.length > 0,
-    )
+  return EMPLOYEE_BLOCKS.map((block) => ({
+    id: block.id,
+    title: block.title,
+    rows: rowsOf(current, block),
+  })).filter((card) => card.rows.length > 0)
 })
 
 const hasNotes = computed<boolean>(() => Boolean(employee.value?.notes?.trim()))
@@ -192,53 +83,66 @@ const visibleExtensions = computed(() =>
     : sortedExtensions.value.slice(0, RECENT_EXTENSIONS),
 )
 
-function contractTile(current: Employee): StatTile {
-  const days = daysUntil(current.contract_end_date)
-  const tile: StatTile = {
-    label: 'Vencimiento del contrato',
-    value: current.contract_end_date
-      ? formatMonthAndYear(current.contract_end_date)
-      : current.contract_type === 'indefinite'
-        ? 'Indefinido'
-        : 'Sin fecha',
-    hint: current.contract_end_date ? formatDate(current.contract_end_date) : undefined,
-  }
-
-  if (days === null || current.status !== 'active') {
-    return tile
-  }
-
-  if (days < 0) {
-    return { ...tile, hint: `Venció hace ${-days} días · ${tile.hint}`, tone: 'danger' }
-  }
-
-  if (days <= CONTRACT_WARNING_DAYS) {
-    return { ...tile, hint: `Vence en ${days} días · ${tile.hint}`, tone: 'warning' }
-  }
-
-  return tile
-}
-
 function rowsOf(current: Employee, block: EmployeeBlock): EmployeeInfoRow[] {
   const rows: EmployeeInfoRow[] = []
 
   for (const field of block.fields) {
-    if (!(field.name in current) || SUMMARIZED_FIELDS.has(field.name)) {
+    if (!(field.name in current)) {
       continue
     }
 
-    rows.push(row(field.label, formatField(current, field)))
+    rows.push(rowOf(current, field))
 
     if (field.name === 'birth_date') {
-      rows.push(row('Cumpleaños', formatDayAndMonth(current.birth_date)))
+      rows.push(plainRow('Cumpleaños', formatDayAndMonth(current.birth_date)))
+    }
+
+    if (field.name === 'contract_end_date') {
+      rows.push(plainRow('Vencimiento mes/año', formatMonthAndYear(current.contract_end_date)))
     }
   }
 
   return rows
 }
 
-function row(label: string, value: string): EmployeeInfoRow {
+function rowOf(current: Employee, field: EmployeeFieldSpec): EmployeeInfoRow {
+  const row = plainRow(field.label, formatField(current, field))
+
+  if (field.name === 'status' && current.status) {
+    return { ...row, badge: current.status === 'active' ? 'success' : 'secondary' }
+  }
+
+  if (field.name === 'contract_end_date') {
+    return { ...row, ...contractWarning(current) }
+  }
+
+  if (field.kind === 'textarea') {
+    return { ...row, multiline: true }
+  }
+
+  return row
+}
+
+function plainRow(label: string, value: string): EmployeeInfoRow {
   return { label, value, isEmpty: value === '—' }
+}
+
+function contractWarning(current: Employee): Pick<EmployeeInfoRow, 'hint' | 'tone'> {
+  const days = daysUntil(current.contract_end_date)
+
+  if (days === null || current.status !== 'active') {
+    return {}
+  }
+
+  if (days < 0) {
+    return { hint: `Venció hace ${-days} días`, tone: 'danger' }
+  }
+
+  if (days <= CONTRACT_WARNING_DAYS) {
+    return { hint: `Vence en ${days} días`, tone: 'warning' }
+  }
+
+  return {}
 }
 
 function formatField(current: Employee, field: EmployeeFieldSpec): string {
@@ -251,15 +155,35 @@ function formatField(current: Employee, field: EmployeeFieldSpec): string {
       return formatBoolean(current[field.name] as boolean | null)
     case 'choice':
       return formatChoice(choices.value, field.name, current[field.name] as string | number | null)
+    case 'division':
+      return current.division_name ?? '—'
+    case 'section':
+      return current.section_name ?? '—'
     case 'position':
-      return current.previous_position_name ?? '—'
+      return (
+        (field.name === 'position' ? current.position_name : current.previous_position_name) ?? '—'
+      )
     case 'boss':
       return current.immediate_boss_name ?? '—'
+    case 'computed':
+      return formatComputed(current, field.name)
     default: {
       const value = current[field.name]
       return value === null || value === undefined || value === '' ? '—' : String(value)
     }
   }
+}
+
+function formatComputed(current: Employee, name: string): string {
+  if (name === 'age') {
+    return current.age === null || current.age === undefined ? '—' : `${current.age} años`
+  }
+
+  if (name === 'seniority') {
+    return formatSeniority(current.seniority)
+  }
+
+  return formatMoney(current.hourly_rate)
 }
 
 async function loadEmployee(): Promise<void> {
@@ -315,97 +239,44 @@ onMounted(loadEmployee)
       </div>
 
       <template v-else-if="employee">
-        <section class="card border-0 shadow-sm mt-3">
-          <div class="card-body d-flex flex-column flex-md-row gap-4">
-            <EmployeePhoto
-              v-if="'photo' in employee"
-              :photo-url="employee.photo ?? null"
-              :employee-id="employee.id"
-              :full-name="employee.full_name ?? ''"
-              :can-edit="canEdit"
-              @update:photo-url="employee.photo = $event"
-            />
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 my-3">
+          <h1 class="h3 mb-0">{{ employee.full_name }}</h1>
 
-            <div class="flex-grow-1">
-              <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
-                <div>
-                  <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                    <h1 class="h3 mb-0">{{ employee.full_name }}</h1>
-                    <span
-                      v-if="employee.status"
-                      class="badge rounded-pill"
-                      :class="
-                        employee.status === 'active' ? 'text-bg-success' : 'text-bg-secondary'
-                      "
-                    >
-                      {{ formatChoice(choices, 'status', employee.status) }}
-                    </span>
-                  </div>
-
-                  <p class="text-secondary mb-0">
-                    {{ formatChoice(choices, 'id_type', employee.id_type) }}
-                    {{ employee.id_number }}
-                  </p>
-                </div>
-
-                <RouterLink
-                  v-if="canEdit"
-                  class="btn btn-primary"
-                  :to="{ name: 'employee-edit', params: { id: employee.id } }"
-                >
-                  Editar
-                </RouterLink>
-              </div>
-
-              <p v-if="subtitle" class="fs-5 mt-3 mb-2">{{ subtitle }}</p>
-
-              <ul v-if="summaryPills.length" class="list-inline mb-0">
-                <li
-                  v-for="pill in summaryPills"
-                  :key="pill"
-                  class="list-inline-item badge rounded-pill text-bg-light border fw-normal fs-6 mb-1"
-                >
-                  {{ pill }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <div v-if="hasNotes" class="alert alert-warning mt-3 mb-0 d-flex gap-2" role="note">
-          <strong class="text-nowrap">Alertas / Observaciones:</strong>
-          <span class="text-break">{{ employee.notes }}</span>
+          <RouterLink
+            v-if="canEdit"
+            class="btn btn-primary"
+            :to="{ name: 'employee-edit', params: { id: employee.id } }"
+          >
+            Editar
+          </RouterLink>
         </div>
 
-        <div v-if="statTiles.length" class="row row-cols-2 row-cols-lg-4 g-3 mt-0">
-          <div v-for="tile in statTiles" :key="tile.label" class="col">
-            <div
-              class="card border-0 shadow-sm h-100 stat-tile"
-              :class="tile.tone ? `stat-tile--${tile.tone}` : ''"
-            >
-              <div class="card-body">
-                <div class="small text-secondary">{{ tile.label }}</div>
-                <div class="fs-4 fw-semibold text-primary text-break">{{ tile.value }}</div>
-                <div
-                  v-if="tile.hint"
-                  class="small"
-                  :class="tile.tone ? `text-${tile.tone}-emphasis fw-medium` : 'text-secondary'"
-                >
-                  {{ tile.hint }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row g-3 mt-0">
+        <div class="row g-3">
           <div
             v-for="card in cards"
             :key="card.id"
-            :class="WIDE_CARDS.has(card.id) ? 'col-12' : 'col-12 col-xl-6'"
+            :class="WIDE_BLOCKS.has(card.id) ? 'col-12' : 'col-12 col-lg-6'"
           >
-            <EmployeeInfoCard :title="card.title" :rows="card.rows" :wide="WIDE_CARDS.has(card.id)">
-              <div v-if="card.id === 'compensation_and_contract'" class="mt-4">
+            <EmployeeInfoCard
+              :title="card.title"
+              :rows="card.rows"
+              :wide="WIDE_BLOCKS.has(card.id)"
+              :highlight="card.id === 'notes' && hasNotes"
+            >
+              <template v-if="card.id === 'identity' && 'photo' in employee" #aside>
+                <EmployeePhoto
+                  :photo-url="employee.photo ?? null"
+                  :employee-id="employee.id"
+                  :full-name="employee.full_name ?? ''"
+                  :can-edit="canEdit"
+                  @update:photo-url="employee.photo = $event"
+                />
+              </template>
+
+              <div
+                v-if="card.id === 'compensation_and_contract' && 'extensions' in employee"
+                class="border-top pt-3 mt-4"
+              >
                 <h3 class="small text-secondary fw-normal mb-2">
                   Prórrogas de contrato ({{ sortedExtensions.length }})
                 </h3>
@@ -482,17 +353,5 @@ onMounted(loadEmployee)
 .employee-page {
   background: var(--fb-surface);
   min-height: 100vh;
-}
-
-.stat-tile {
-  border-top: 3px solid var(--fb-blue) !important;
-}
-
-.stat-tile--warning {
-  border-top-color: var(--fb-orange) !important;
-}
-
-.stat-tile--danger {
-  border-top-color: var(--bs-danger) !important;
 }
 </style>

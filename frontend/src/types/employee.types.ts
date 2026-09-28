@@ -108,6 +108,10 @@ export interface EmployeeInfoRow {
   label: string
   value: string
   isEmpty: boolean
+  badge?: 'success' | 'secondary'
+  hint?: string
+  tone?: 'warning' | 'danger'
+  multiline?: boolean
 }
 
 export type EmployeeField = Exclude<keyof Employee, 'id'>
