@@ -1,7 +1,7 @@
 # SQL Server local en macOS (Apple Silicon)
 
 Cómo se montó el SQL Server de desarrollo en un Mac con chip Apple, y los comandos
-del día a día. La base de producción todavía no está definida (pendiente #9 del
+del día a día. La base de producción todavía no está definida (pendiente #8 del
 CLAUDE.md): lo de acá replica lo que se espera encontrar allá, no lo confirmado.
 
 ---
