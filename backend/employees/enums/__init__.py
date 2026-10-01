@@ -21,7 +21,6 @@ from .SalaryType import SalaryType
 from .SeveranceFund import SeveranceFund
 from .Sex import Sex
 from .SocioeconomicStratum import SocioeconomicStratum
-from .Payroll import MONTHLY_WORK_HOURS
 
 __all__ = [
     'AdditionalRole',
@@ -40,7 +39,6 @@ __all__ = [
     'FamilyComposition',
     'HealthInsurer',
     'IdentificationType',
-    'MONTHLY_WORK_HOURS',
     'MaritalStatus',
     'OccupationalRiskInsurer',
     'PensionFund',

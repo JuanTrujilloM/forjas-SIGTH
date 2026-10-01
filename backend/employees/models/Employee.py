@@ -8,7 +8,6 @@ from simple_history.models import HistoricalRecords
 
 # internal application code imports
 from employees.enums import (
-    MONTHLY_WORK_HOURS,
     AdditionalRole,
     Area,
     BloodType,
@@ -39,6 +38,9 @@ from .Position import Position
 
 # main class
 class Employee(models.Model):
+    # 42 weekly hours; the specification's 220 belongs to the former 44-hour week
+    MONTHLY_WORK_HOURS = 210
+
     # fields
     id = models.AutoField(primary_key=True)
     status = models.CharField(
@@ -245,7 +247,7 @@ class Employee(models.Model):
         if self.current_salary is None:
             return None
 
-        return (self.current_salary / MONTHLY_WORK_HOURS).quantize(
+        return (self.current_salary / self.MONTHLY_WORK_HOURS).quantize(
             Decimal('0.01'), rounding=ROUND_HALF_UP
         )
 
