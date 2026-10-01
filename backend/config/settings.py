@@ -11,6 +11,12 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
+# demo branch only: the Render + Vercel demo for Talent Management, never merged into develop
+DEMO_RENDER = config('DEMO_RENDER', default=False, cast=bool)
+
+if DEMO_RENDER:
+    ALLOWED_HOSTS.append(config('RENDER_EXTERNAL_HOSTNAME'))
+
 AUTH_USER_MODEL = 'users.User'
 
 CORPORATE_EMAIL_DOMAIN = config('CORPORATE_EMAIL_DOMAIN')
@@ -63,21 +69,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', default=''),
-        'OPTIONS': {
-            'driver': config('DB_DRIVER', default='ODBC Driver 18 for SQL Server'),
-            # Driver 18 rejects the local self-signed certificate: TrustServerCertificate in dev only
-            'extra_params': config('DB_EXTRA_PARAMS', default=''),
+# SQLite only for the demo: its search ignores case only in ASCII, unlike SQL Server
+if DEMO_RENDER:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'demo.sqlite3',
         },
-    },
-}
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'mssql',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST'),
+            'PORT': config('DB_PORT', default=''),
+            'OPTIONS': {
+                'driver': config('DB_DRIVER', default='ODBC Driver 18 for SQL Server'),
+                # Driver 18 rejects the local self-signed cert: TrustServerCertificate in dev only
+                'extra_params': config('DB_EXTRA_PARAMS', default=''),
+            },
+        },
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -166,6 +181,10 @@ else:
     ]
 
     SECURE_SSL_REDIRECT = True
+
+    # Render ends HTTPS at its proxy; without this the redirect above loops forever
+    if DEMO_RENDER:
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
     SECURE_HSTS_SECONDS = 31536000
 

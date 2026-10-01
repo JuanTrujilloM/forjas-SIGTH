@@ -1,6 +1,7 @@
 # external libraries imports
 from pathlib import Path
 
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import serializers
 
@@ -26,5 +27,9 @@ class EmployeePhotoUrlField(serializers.Field):
 
         if self.thumbnail:
             query += '&size=thumb'
+
+        # relative in the demo: an absolute url would name Render's host and skip the session cookie
+        if settings.DEMO_RENDER:
+            return f'{url}?{query}'
 
         return self.context['request'].build_absolute_uri(f'{url}?{query}')

@@ -1,0 +1,30 @@
+# Demo for Talent Management only: SQLite and invented data, never production
+services:
+  - type: web
+    name: sigth-demo-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    branch: demo/render
+    # gunicorn only here: production's application server is TI's call
+    buildCommand: pip install -r requirements.txt gunicorn==23.0.0
+    startCommand: ./start-demo.sh
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: DEMO_RENDER
+        value: 'True'
+      - key: DEBUG
+        value: 'False'
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORPORATE_EMAIL_DOMAIN
+        value: forjasbolivar.com
+      # the Vercel host, e.g. sigth-demo.vercel.app; Render's own host is added by the settings
+      - key: ALLOWED_HOSTS
+        sync: false
+      # the Vercel origin, e.g. https://sigth-demo.vercel.app
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: DEMO_USERS_PASSWORD
+        sync: false
