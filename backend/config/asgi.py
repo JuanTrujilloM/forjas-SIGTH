@@ -1,4 +1,3 @@
-# ASGI entry point; unused today, the planned deployment is WSGI (11)
 
 # external libraries imports
 import os

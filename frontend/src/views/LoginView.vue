@@ -20,8 +20,7 @@ const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 const wasSubmitted = ref(false)
 
-// Convenience for whoever is typing; the domain that decides is the one the backend
-// validates on the model field and on the login serializer (3.3).
+// convenience for whoever is typing; the backend validates the domain again
 const emailError = computed<string | null>(() => {
   if (!email.value.trim()) {
     return 'Escribe tu correo corporativo.'
@@ -52,7 +51,7 @@ async function submit(): Promise<void> {
     await session.login({ email: email.value.trim(), password: password.value })
 
     const destination = route.query.destino
-    await router.replace(typeof destination === 'string' ? destination : { name: 'home' })
+    await router.replace(typeof destination === 'string' ? destination : { name: 'employees' })
   } catch (error) {
     errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo iniciar sesión.')
   } finally {
@@ -62,8 +61,7 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <!-- align-content-start keeps the stacked mobile layout from spreading the leftover
-       height over the logo band; from lg up the two panels share one line again -->
+  <!-- align-content-start keeps the stacked mobile layout from stretching the logo band -->
   <main class="row g-0 min-vh-100 align-content-start align-content-lg-stretch">
     <section class="col-12 col-lg-6 login-hero">
       <img class="login-hero__photo" :src="loginHero" alt="" aria-hidden="true" />
@@ -160,8 +158,7 @@ async function submit(): Promise<void> {
 
 <style scoped>
 /* main code */
-/* One block, two sizes: a banner over the form on a phone, the left half of the split
-   from lg up. Two markup branches would mean maintaining the same hero twice. */
+/* one block: a banner over the form on a phone, the left half of the split from lg up */
 .login-hero {
   position: relative;
   overflow: hidden;
@@ -185,8 +182,7 @@ async function submit(): Promise<void> {
   object-position: 68% center;
 }
 
-/* Darkest where the logo and the tagline sit and almost clear in between, so the wash
-   buys contrast for the text without flattening the photograph. */
+/* darkest behind the logo and the tagline, almost clear in between, to keep the photo visible */
 .login-hero::after {
   content: '';
   position: absolute;

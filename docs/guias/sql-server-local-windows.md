@@ -3,8 +3,9 @@
 Cómo se montó el SQL Server de desarrollo en un PC con Windows, y los comandos del
 día a día. Es el equivalente de [`sql-server-local.md`](sql-server-local.md), que
 documenta el mismo montaje en macOS; lo que cambia entre los dos está señalado. La
-base de producción todavía no está definida (pendiente #9 del CLAUDE.md): lo de acá
-replica lo que se espera encontrar allá, no lo confirmado.
+base de producción todavía no está definida (pendiente 2 de la
+[documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes)): lo de acá replica lo que se espera
+encontrar allá, no lo confirmado.
 
 ---
 
@@ -47,7 +48,7 @@ ya trae `sqlcmd` en `/opt/mssql-tools18/bin/`, y se usa vía `docker exec`. Es u
 dependencia menos que mantener que en el Mac, donde vino por Homebrew.
 
 La base se llama `sigth` y la aplicación se conecta con el login `sigth_app`,
-**nunca con `sa`** (CLAUDE.md §10.2).
+**nunca con `sa`**.
 
 ---
 
@@ -279,7 +280,7 @@ cd frontend; npm run dev
 
 **Comprobar que back y front se hablan:** con los dos corriendo, abrir
 `http://localhost:5173/ingreso` e iniciar sesión. Si aún no hay ninguna cuenta, crearla
-antes con `createsuperuser` (ver `docs/autenticacion.md`).
+antes con `createsuperuser` (ver `docs/guias/autenticacion.md`).
 
 **Después de traer cambios que tocan modelos:**
 

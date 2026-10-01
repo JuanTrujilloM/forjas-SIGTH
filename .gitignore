@@ -1,4 +1,4 @@
-# Secrets — never commit (CLAUDE.md 11.2)
+# Secrets — never commit
 .env
 backend/.env
 frontend/.env
@@ -17,6 +17,7 @@ frontend/node_modules/
 frontend/dist/
 
 # Employee data
+backend/media/
 *.xlsx
 *.xls
 *.csv
@@ -25,3 +26,4 @@ frontend/dist/
 .DS_Store
 .idea/
 .vscode/
+CLAUDE.md

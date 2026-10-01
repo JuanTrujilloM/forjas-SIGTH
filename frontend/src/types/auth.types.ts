@@ -1,12 +1,19 @@
+export type AccessProfile =
+  'talent_management' | 'general_management' | 'occupational_safety' | 'director' | 'leader' | ''
+
 export interface AuthenticatedUser {
   id: number
   email: string
   first_name: string
   last_name: string
   full_name: string
+  profile: AccessProfile
+  profile_name: string
   division: number | null
   division_name: string | null
-  sees_every_division: boolean
+  section_names: string[]
+  sees_every_employee: boolean
+  can_edit_employees: boolean
 }
 
 export interface LoginCredentials {

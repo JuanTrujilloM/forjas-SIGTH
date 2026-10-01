@@ -2,17 +2,34 @@
 from django.db.models import QuerySet
 
 # internal application code imports
-from users.access.DivisionScopePolicy import DivisionScopePolicy
+from users.access.EmployeeFieldPolicy import EmployeeFieldPolicy
+from users.access.EmployeeScopePolicy import EmployeeScopePolicy
 
 
 # main class
-# Applies the scope in get_queryset(), so no route can return a record outside it (6.3):
-# not the list, not the detail fetched by id, not an export. A view that overrides
-# get_queryset() without calling super() steps around the policy.
-class DivisionScopedMixin:
-    # path from the scoped model to Division; override it when it is not a direct FK
+# a view that overrides get_queryset() without calling super() skips the row scope
+class EmployeeScopedMixin:
     division_lookup: str = 'division'
+    section_lookup: str = 'section'
 
     def get_queryset(self) -> QuerySet:
         queryset = super().get_queryset()
-        return DivisionScopePolicy.scope(self.request.user, queryset, self.division_lookup)
+        return EmployeeScopePolicy.scope(
+            self.request.user,
+            queryset,
+            self.division_lookup,
+            self.section_lookup,
+        )
+
+
+# without a request in the context every field but the id is dropped
+class EmployeeFieldsMixin:
+    def get_fields(self) -> dict:
+        request = self.context.get('request')
+        readable = EmployeeFieldPolicy.readable_fields(getattr(request, 'user', None))
+
+        return {
+            name: field
+            for name, field in super().get_fields().items()
+            if name == 'id' or name in readable
+        }
