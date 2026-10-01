@@ -1,4 +1,4 @@
-# Secrets — never commit (CLAUDE.md 11.2)
+# Secrets — never commit
 .env
 backend/.env
 frontend/.env

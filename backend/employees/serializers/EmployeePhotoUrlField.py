@@ -9,9 +9,7 @@ from employees.models import Employee
 
 
 # main class
-# The url points to the photo endpoint and not to MEDIA_URL, so the file goes out behind
-# the same row scope as the rest of the employee (6.4). The file name is the version, so
-# a cached copy never outlives a new photo.
+# the photo endpoint keeps the row scope; the file name in the url invalidates the cache
 class EmployeePhotoUrlField(serializers.Field):
     def __init__(self, thumbnail: bool = False, **kwargs):
         kwargs['source'] = '*'

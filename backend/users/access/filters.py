@@ -16,8 +16,7 @@ def _root_field(lookup: str) -> str:
     return lookup.lstrip('^=@$-').split('__')[0]
 
 
-# A filter on a hidden column would leak it: filtering by stratum=1 reveals the stratum
-# even if it is never shown (6.2). Filters on hidden columns are dropped, not rejected.
+# filters on hidden columns are dropped: stratum=1 would reveal the stratum without showing it
 class EmployeeFieldFilterSet(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

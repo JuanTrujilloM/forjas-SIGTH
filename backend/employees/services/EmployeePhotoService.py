@@ -11,8 +11,7 @@ from django.http import FileResponse, Http404
 from PIL import Image, ImageOps
 
 # internal application code imports
-# Employee imports this package for its upload path, so importing it back at runtime
-# would be circular; it is only needed for the type hints
+# type hints only: importing Employee at runtime would be circular
 if TYPE_CHECKING:
     from employees.models import Employee
 
@@ -20,11 +19,9 @@ if TYPE_CHECKING:
 # main class
 class EmployeePhotoService:
     FORMAT_EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP': '.webp'}
-    # twice the 40x50 the list draws, for high density screens
     THUMBNAIL_SIZE = (80, 100)
 
-    # The previous file stays on disk on purpose: the employee's history still points to
-    # it (5.2). Deleting it waits for the history retention rule.
+    # the previous file stays on disk on purpose: the employee's history still points to it
     @staticmethod
     def replace(employee: 'Employee', photo: UploadedFile) -> None:
         photo.name = f'photo{EmployeePhotoService.FORMAT_EXTENSIONS[photo.image.format]}'
@@ -43,7 +40,6 @@ class EmployeePhotoService:
 
         content_type, _ = mimetypes.guess_type(storage_name)
         response = FileResponse(default_storage.open(storage_name, 'rb'), content_type=content_type)
-        # the url carries the file's name as its version, so a cached copy never goes stale
         response['Cache-Control'] = 'private, max-age=86400'
 
         return response
@@ -53,8 +49,6 @@ class EmployeePhotoService:
         path = PurePosixPath(storage_name)
         return str(path.with_name(f'{path.stem}.thumb.jpg'))
 
-    # Built on the first request and kept next to the photo, so it also covers photos
-    # uploaded from the admin or loaded before thumbnails existed
     @staticmethod
     def thumbnail_response(storage_name: str) -> FileResponse:
         if not storage_name or not default_storage.exists(storage_name):

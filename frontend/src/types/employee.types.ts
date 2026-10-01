@@ -34,8 +34,7 @@ export interface EmployeeListItem {
   position_name: string | null
 }
 
-// Every field but the id is optional: the backend leaves out the columns the profile may
-// not read (6.2), so a missing key means "not yours to see", not "empty"
+// every field but the id is optional: a missing key is a column the profile may not read
 export interface Employee {
   id: number
   status?: string

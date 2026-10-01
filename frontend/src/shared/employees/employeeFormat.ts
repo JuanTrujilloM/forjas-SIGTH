@@ -22,8 +22,7 @@ const moneyFormatter = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 2,
 })
 
-// The API sends plain YYYY-MM-DD dates. Parsing them with new Date() would read them as
-// UTC midnight and show the previous day in Colombia, so they are split by hand.
+// split by hand: new Date('YYYY-MM-DD') is UTC midnight, the previous day in Colombia
 function splitDate(value: string): [number, number, number] {
   const [year, month, day] = value.split('-').map(Number)
   return [year ?? 0, month ?? 1, day ?? 1]

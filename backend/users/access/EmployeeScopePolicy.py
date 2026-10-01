@@ -7,8 +7,6 @@ from users.enums import AccessProfile
 
 
 # main class
-# Single point that decides WHICH EMPLOYEES a user may see (6.1). Which of their fields
-# is decided by EmployeeFieldPolicy.
 class EmployeeScopePolicy:
     FULL_SCOPE_PROFILES = frozenset({
         AccessProfile.TALENT_MANAGEMENT,
@@ -40,6 +38,5 @@ class EmployeeScopePolicy:
             section_ids = user.section_assignments.values('section_id')
             return queryset.filter(**{f'{section_lookup}_id__in': section_ids})
 
-        # An account with no profile belongs to IT, which works from the Django admin and
-        # not from the API. A director with no division lands here too: nothing is safe.
+        # IT (no profile) works from the admin; a director with no division sees nobody
         return queryset.none()

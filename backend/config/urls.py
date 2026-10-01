@@ -9,7 +9,6 @@ from employees.views import AdminMediaView
 # main code
 media_prefix = settings.MEDIA_URL.lstrip('/')
 
-# no version prefix: the frontend is the only client and ships with the backend
 urlpatterns = [
     path('admin/', admin.site.urls),
     path(f'{media_prefix}<path:path>', AdminMediaView.as_view(), name='employees.admin_media'),

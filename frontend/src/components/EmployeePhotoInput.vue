@@ -38,8 +38,7 @@ onBeforeUnmount(() => {
   }
 })
 
-// Convenience before saving; the backend checks size and format again and is the one
-// that decides (3.3)
+// convenience check; the backend validates size and format again
 function choose(event: Event): void {
   const selected = (event.target as HTMLInputElement).files?.[0]
   errorMessage.value = null

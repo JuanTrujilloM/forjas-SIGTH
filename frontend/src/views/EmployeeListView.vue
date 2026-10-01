@@ -12,7 +12,7 @@ import type { CatalogItem } from '@/types/organization.types'
 
 const session = useSessionStore()
 
-// an account with no profile gets an empty list anyway; this only says why (6.1)
+// an account with no profile gets an empty list anyway; this only says why
 const hasProfile = Boolean(session.user?.profile)
 
 const page = ref<Page<EmployeeListItem> | null>(null)

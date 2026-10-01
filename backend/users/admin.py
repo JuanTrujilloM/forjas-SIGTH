@@ -27,8 +27,7 @@ class SectionAdmin(admin.ModelAdmin):
     ordering = ['name']
 
 
-# The sections arrive in the inline, after the user form, so the rule that ties them to
-# the profile can only be checked here and not in User.clean()
+# the sections arrive in the inline, after the user form, so User.clean() cannot check them
 class UserSectionInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()

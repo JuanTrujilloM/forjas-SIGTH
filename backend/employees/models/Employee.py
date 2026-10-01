@@ -58,8 +58,6 @@ class Employee(models.Model):
         help_text='Único sin importar el tipo: al pasar de T.I. a cédula se conserva el registro',
     )
     full_name = models.CharField(max_length=200, verbose_name='Apellidos y nombres')
-    # PENDING (12, #12): stored in the provisional MEDIA_ROOT until IT decides where
-    # uploaded files live and how they are backed up
     photo = models.ImageField(
         upload_to=EmployeePhotoPath(),
         null=True,
@@ -140,7 +138,7 @@ class Employee(models.Model):
     contract_end_date = models.DateField(
         null=True, blank=True, verbose_name='Fecha de vencimiento del contrato'
     )
-    # PENDING (12, #14): free text until Talent Management says what this field holds
+    # PENDING: free text until Talent Management says what this field holds
     indefinite_extension = models.CharField(
         max_length=200, blank=True, verbose_name='Prórroga indefinido'
     )

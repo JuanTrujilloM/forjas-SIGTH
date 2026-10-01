@@ -1,5 +1,4 @@
-# Initial catalog taken from Talent Management's field specification (5.1). The lists
-# live here and not in app code on purpose: a migration must replay the same data forever.
+# initial catalog from the specification, kept here so the migration always replays the same data
 
 from django.db import migrations
 

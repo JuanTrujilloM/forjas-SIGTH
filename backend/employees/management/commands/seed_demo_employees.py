@@ -54,8 +54,7 @@ from ._demo_roster import (
 )
 
 # main code
-# Demo employees live in a reserved id range, far from real Colombian documents, so the
-# command can replace exactly its own rows and nothing else
+# a reserved id range, far from real documents, so --replace deletes only demo rows
 DEMO_FIRST_ID = 9_000_000_001
 DEMO_LAST_ID = 9_000_009_999
 

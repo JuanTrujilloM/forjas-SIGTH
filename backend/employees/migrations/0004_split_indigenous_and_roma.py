@@ -3,8 +3,7 @@
 from django.db import migrations, models
 
 
-# the old option merged two groups, so its rows cannot be told apart: they are left empty
-# for Talent Management to fill in again
+# the old option merged two groups, so its rows are left empty for Talent Management to refill
 def clear_merged_ethnicity(apps, schema_editor):
     Employee = apps.get_model('employees', 'Employee')
     Employee.objects.filter(ethnicity='indigenous_roma').update(ethnicity='')

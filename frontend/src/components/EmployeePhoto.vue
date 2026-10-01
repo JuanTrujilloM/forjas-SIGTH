@@ -21,8 +21,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const isSaving = ref(false)
 const errorMessage = ref<string | null>(null)
 
-// Convenience before spending an upload; the backend checks size and format again and
-// is the one that decides (3.3)
+// convenience check; the backend validates size and format again
 async function upload(event: Event): Promise<void> {
   const file = (event.target as HTMLInputElement).files?.[0]
 

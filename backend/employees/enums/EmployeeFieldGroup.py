@@ -14,8 +14,7 @@ class EmployeeFieldGroup(models.TextChoices):
     SOCIODEMOGRAPHIC = 'sociodemographic', 'Sociodemográfico'
 
 
-# API field names of each group, including the computed and display-only ones. A field
-# left out of every group is readable by nobody (6.2).
+# a field left out of every group is readable by nobody
 EMPLOYEE_FIELD_GROUPS: dict[EmployeeFieldGroup, frozenset[str]] = {
     EmployeeFieldGroup.IDENTITY: frozenset({
         'status',

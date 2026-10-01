@@ -14,8 +14,7 @@ class EmployeePhotoValidator:
         if value.size > self.MAX_BYTES:
             raise ValidationError('La foto no puede pesar más de 5 MB.', code='photo_too_large')
 
-        # Only a freshly uploaded file carries the image Pillow opened; the extension alone
-        # proves nothing, so SVG or HTML renamed to .jpg is rejected here
+        # the format Pillow detected decides, not the extension: a renamed SVG is rejected
         image = getattr(value, 'image', None)
 
         if image is not None and image.format not in self.ALLOWED_FORMATS:

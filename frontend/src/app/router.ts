@@ -57,7 +57,7 @@ router.beforeEach(async (to) => {
     return { name: 'employees' }
   }
 
-  // interface convenience only: the backend refuses the write anyway (8.3)
+  // interface convenience only: the backend refuses the write anyway
   if (to.meta.requiresEditor && !session.user?.can_edit_employees) {
     return { name: 'employees' }
   }

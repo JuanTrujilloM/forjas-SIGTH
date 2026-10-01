@@ -97,8 +97,6 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'socioeconomic_stratum',
         ]
 
-    # one message for a missing value, whether it arrives absent, null or blank: DRF has
-    # three, and "no puede ser nulo" means nothing to Talent Management
     def get_fields(self) -> dict:
         fields = super().get_fields()
 

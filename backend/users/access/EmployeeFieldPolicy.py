@@ -7,8 +7,6 @@ from users.enums import AccessProfile
 
 
 # main class
-# Single point that decides WHICH FIELDS of an employee a user may see, and who may
-# write (6.2, 6.3). Which employees is decided by EmployeeScopePolicy.
 class EmployeeFieldPolicy:
     _MANAGER_GROUPS = frozenset(EmployeeFieldGroup) - {
         EmployeeFieldGroup.NOTES,
@@ -45,8 +43,7 @@ class EmployeeFieldPolicy:
             and user.profile == AccessProfile.TALENT_MANAGEMENT
         )
 
-    # the admin shows every field, so only the two accounts that may see all of them
-    # enter: Talent Management to edit and IT (no profile) to read
+    # the admin shows every field, so only Talent Management and IT (no profile) enter
     @staticmethod
     def can_view_admin(user: AbstractBaseUser | AnonymousUser | None) -> bool:
         return bool(

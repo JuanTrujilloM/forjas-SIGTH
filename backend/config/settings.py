@@ -13,7 +13,6 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 AUTH_USER_MODEL = 'users.User'
 
-# Login identifier domain; only accounts under it exist in the system (2)
 CORPORATE_EMAIL_DOMAIN = config('CORPORATE_EMAIL_DOMAIN')
 
 INSTALLED_APPS = [
@@ -42,13 +41,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # records who changed what and when on every model with history (5.2)
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
 
-# only the native Django admin renders templates; business screens live in frontend/
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -76,8 +73,7 @@ DATABASES = {
         'PORT': config('DB_PORT', default=''),
         'OPTIONS': {
             'driver': config('DB_DRIVER', default='ODBC Driver 18 for SQL Server'),
-            # Driver 18 encrypts by default and rejects the local container's
-            # self-signed certificate; TrustServerCertificate=yes only in development
+            # Driver 18 rejects the local self-signed certificate: TrustServerCertificate in dev only
             'extra_params': config('DB_EXTRA_PARAMS', default=''),
         },
     },
@@ -110,9 +106,6 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# PENDING (12, #12): provisional local folder until IT decides where uploaded files live
-# and how they are backed up. Nothing here is served as a public file: photos go out
-# through the API and the admin, behind the employee policy (6.4).
 MEDIA_ROOT = Path(config('MEDIA_ROOT', default='') or BASE_DIR / 'media')
 
 MEDIA_URL = 'media/'
@@ -130,17 +123,15 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # PENDING (12, #5): confirm the page size against the real employee volume
+    # PENDING: confirm the page size against the real employee volume
     'PAGE_SIZE': 25,
 }
 
-# Same domain for backend and frontend, so Django's own session cookie is enough:
-# httpOnly and CSRF-protected by default, revoked server-side, no tokens to write.
 SESSION_COOKIE_HTTPONLY = True
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# PENDING (12, #6): confirm the inactivity timeout with Information Security
+# PENDING: confirm the inactivity timeout with Information Security
 SESSION_COOKIE_AGE = 60 * 60 * 8
 
 SESSION_SAVE_EVERY_REQUEST = True
@@ -149,16 +140,14 @@ CSRF_COOKIE_HTTPONLY = False
 
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())
 
-# Only for development, where Vite runs on its own port; empty in production.
-# Never use CORS_ALLOW_ALL_ORIGINS (4.4).
+# Only for development, where Vite runs on its own port; never CORS_ALLOW_ALL_ORIGINS
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Everything that differs between environments hangs off DEBUG, which comes from .env
-# and defaults to False: a server with a misconfigured .env stays in the safe mode.
+# DEBUG defaults to False, so a server with a misconfigured .env stays in the safe mode
 if DEBUG:
-    # browsable API: would otherwise render employee data as HTML outside the frontend
+    # browsable API only in development: it renders employee data as HTML
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',

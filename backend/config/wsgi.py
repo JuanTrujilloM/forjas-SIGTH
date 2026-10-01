@@ -1,4 +1,3 @@
-# WSGI entry point, used by the production server (gunicorn or waitress, 11)
 
 # external libraries imports
 import os

@@ -1,5 +1,4 @@
-# Initial catalog taken from Talent Management's field specification (5.1). It is known
-# to be incomplete; Talent Management adds the missing positions from the admin.
+# initial catalog from the specification; Talent Management adds the missing ones in the admin
 
 from django.db import migrations
 

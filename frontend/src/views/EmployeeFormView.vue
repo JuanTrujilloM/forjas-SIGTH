@@ -169,8 +169,7 @@ async function save(): Promise<void> {
   }
 }
 
-// The photo has its own endpoint and needs the employee to exist, so it goes after the
-// data. If it fails the employee is already saved: the detail page warns and retries it.
+// after the data, since the photo endpoint needs the employee; the detail page retries a failure
 async function savePhoto(id: number): Promise<boolean> {
   try {
     if (photoFile.value) {

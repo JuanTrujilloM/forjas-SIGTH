@@ -7,11 +7,8 @@ from users.access.EmployeeScopePolicy import EmployeeScopePolicy
 
 
 # main class
-# Applies the row scope in get_queryset(), so no route can return an employee outside it
-# (6.4): not the list, not the detail fetched by id, not an export. A view that overrides
-# get_queryset() without calling super() steps around the policy.
+# a view that overrides get_queryset() without calling super() skips the row scope
 class EmployeeScopedMixin:
-    # paths from the scoped model to Division and Section; override when not direct FKs
     division_lookup: str = 'division'
     section_lookup: str = 'section'
 
@@ -25,8 +22,7 @@ class EmployeeScopedMixin:
         )
 
 
-# Applies the column scope to a serializer (6.4). Without a request in the context it
-# drops every field but the id: a serializer used out of a view exposes nothing.
+# without a request in the context every field but the id is dropped
 class EmployeeFieldsMixin:
     def get_fields(self) -> dict:
         request = self.context.get('request')

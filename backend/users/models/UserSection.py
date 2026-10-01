@@ -7,8 +7,7 @@ from .Section import Section
 
 
 # main class
-# Explicit through table instead of Django's implicit one: every row grants access to
-# people's data, so it needs timestamps, history and PROTECT (5.1)
+# explicit through table: every row grants access, so it needs history and PROTECT
 class UserSection(models.Model):
     # fields
     id = models.AutoField(primary_key=True)

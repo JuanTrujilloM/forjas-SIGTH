@@ -1,6 +1,5 @@
 # main code
-# Invented people over the real structure of the organigram DR-DI-03. The names below are
-# generic combinations; no row comes from the real personnel file (11.2).
+# invented people over the real organigram; no row comes from the real personnel file
 
 AF = 'Dir. Administrativa, Financiera y TI'
 MP = 'Dir. Manufactura y Planeación'

@@ -3,8 +3,7 @@ from django.db import models
 
 
 # main class
-# What the business also calls a "process". It does not hang from a division: the
-# specification keeps division and section as two independent employee fields (5.1).
+# what the business also calls a "process"; independent from Division, as in the specification
 class Section(models.Model):
     # fields
     id = models.AutoField(primary_key=True)

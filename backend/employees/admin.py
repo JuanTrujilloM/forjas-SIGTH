@@ -8,8 +8,7 @@ from users.access import EmployeeFieldPolicy
 
 
 # main code
-# Access to this part of the admin is decided by the employee policy and not by Django's
-# model permissions (6.3): Talent Management edits, IT reads, nobody deletes.
+# admin access comes from the employee policy, not from Django's model permissions
 class EmployeePolicyAdminMixin:
     def has_module_permission(self, request) -> bool:
         return EmployeeFieldPolicy.can_view_admin(request.user)

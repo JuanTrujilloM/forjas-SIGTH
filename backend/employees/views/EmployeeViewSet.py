@@ -28,7 +28,7 @@ from users.access import (
 
 
 # main class
-# No destroy: an employee is retired by changing their status, never deleted (6.3)
+# no destroy: an employee is retired by changing their status, never deleted
 class EmployeeViewSet(
     EmployeeScopedMixin,
     mixins.ListModelMixin,

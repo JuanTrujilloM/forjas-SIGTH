@@ -42,8 +42,7 @@ export interface EmployeeBlock {
   fields: EmployeeFieldSpec[]
 }
 
-// Same blocks as the backend's column matrix (6.2). Only the layout lives here: which of
-// them a user sees is whatever the API returns.
+// same blocks as the backend's column matrix; which ones a user sees comes from the API
 export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
   {
     id: 'identity',

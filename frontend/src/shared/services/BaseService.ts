@@ -6,7 +6,7 @@ export default class BaseService {
   private static createAxiosInstance() {
     return axios.create({
       baseURL: import.meta.env.VITE_API_BASE_URL,
-      // the session lives in Django's cookie, so it must travel on every request (10.2)
+      // the session lives in Django's cookie, so it must travel on every request
       withCredentials: true,
       xsrfCookieName: 'csrftoken',
       xsrfHeaderName: 'X-CSRFToken',
