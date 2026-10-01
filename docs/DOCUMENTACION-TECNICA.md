@@ -16,9 +16,9 @@
 
 Documento funcional para usuarios: `FB-INM-P03-TH-Informe-de-entrega`.
 
-Este documento es la **puerta de entrada** para TI. El detalle de diseño y las reglas del
-código viven en [`CLAUDE.md`](../CLAUDE.md), la guía de trabajo del repositorio. Aquí se
-resume y se enlaza en vez de copiar, para que haya una sola fuente de verdad.
+Este documento es la **puerta de entrada** para TI. Junto con las decisiones de
+[`adr/`](adr/) y las guías de [`guias/`](guias/), cubre el diseño, las reglas y la
+operación del sistema.
 
 ## Contenido
 
@@ -52,8 +52,7 @@ SIGTH reemplaza ese flujo con una plataforma web interna:
 - cada una **ve directamente los empleados y los datos que le corresponden según su perfil**;
 - **solo Talento Humano crea y edita** información.
 
-El objetivo es quitar el intermediario **sin abrir la información de más**
-([CLAUDE.md §1](../CLAUDE.md#1-propósito)).
+El objetivo es quitar el intermediario **sin abrir la información de más**.
 
 ### 1.2 Funcionalidades de esta fase
 
@@ -76,10 +75,10 @@ previstas para eso.
 
 | Prioridad | Objetivo | Cómo se garantiza |
 |---|---|---|
-| 1 | **Confidencialidad**: nadie ve empleados ni datos fuera de su perfil | Una sola política decide filas y columnas en el backend; fuera de alcance responde 404 ([CLAUDE.md §6](../CLAUDE.md#6-control-de-acceso)) |
+| 1 | **Confidencialidad**: nadie ve empleados ni datos fuera de su perfil | Una sola política decide filas y columnas en el backend; fuera de alcance responde 404 (§7.1) |
 | 2 | **Trazabilidad**: saber quién cambió cada dato | `django-simple-history` sobre empleados y cuentas |
 | 3 | **Seguridad por defecto** | Todo lo sensible cuelga de `DEBUG`, que por defecto es `False`. Ningún secreto en el repositorio |
-| 4 | **Mantenibilidad** | Convenciones escritas en `CLAUDE.md`, un archivo por modelo, vista o serializer |
+| 4 | **Mantenibilidad** | Convenciones de código comunes (§4.3), un archivo por modelo, vista o serializer |
 
 ---
 
@@ -107,7 +106,7 @@ flowchart LR
 | Líderes, coordinadores, jefes de área | Ven los empleados de las secciones a su cargo |
 | TI | Administra cuentas desde el admin. Por la API no ve empleados |
 
-**Fuera de alcance de esta fase** ([CLAUDE.md §1.1](../CLAUDE.md#11-alcance-de-esta-fase)):
+**Fuera de alcance de esta fase**:
 - otros procesos de talento humano (nómina, capacitaciones, dotación, ausentismo, evaluaciones);
 - auto-registro y recuperación pública de contraseña;
 - inicio de sesión único (SSO);
@@ -120,11 +119,11 @@ flowchart LR
 | Tipo | Restricción / supuesto |
 |---|---|
 | Base de datos | **SQL Server**, porque es el motor que ya tiene la empresa. Nunca SQLite ni PostgreSQL, ni siquiera en desarrollo |
-| Infraestructura | **TI monta el sistema en su propio servidor** y decide sistema operativo, servidor web, proceso de despliegue y quién corre las migraciones. El repositorio no trae configuración de despliegue ([CLAUDE.md §10.3](../CLAUDE.md#103-producción-y-despliegue)) |
+| Infraestructura | **TI monta el sistema en su propio servidor** y decide sistema operativo, servidor web, proceso de despliegue y quién corre las migraciones. El repositorio no trae configuración de despliegue |
 | Red | Sistema interno, no expuesto a internet |
 | Cuentas | Las crea TI. El identificador es el correo del dominio corporativo (`CORPORATE_EMAIL_DOMAIN`) |
 | Fuente de los datos | Especificación "Base de Datos Personal" de Talento Humano y organigrama DR-DI-03. **No entran al repositorio**, igual que el Excel real |
-| Pruebas | No hay suite de pruebas automatizadas en esta etapa ([CLAUDE.md §7.5](../CLAUDE.md#75-pruebas)) |
+| Pruebas | No hay suite de pruebas automatizadas en esta etapa (§12) |
 
 ---
 
@@ -160,8 +159,8 @@ flowchart LR
 | Archivos | Carpeta local (`MEDIA_ROOT`) | Fotos de empleados, servidas solo por la API | Provisional (§12) |
 
 Dependencias completas: [`backend/requirements.txt`](../backend/requirements.txt) y
-[`frontend/package.json`](../frontend/package.json). Cada una está justificada en
-[CLAUDE.md §3](../CLAUDE.md#3-arquitectura-y-stack).
+[`frontend/package.json`](../frontend/package.json). Cada una responde a una necesidad
+concreta del proyecto: no se agregan dependencias sin justificarlo.
 
 ### 4.3 Estructura del código
 
@@ -178,13 +177,21 @@ forjas-SIGTH/
 │   ├── services/      un servicio por dominio; solo BaseService importa axios
 │   ├── stores/        sesión (Pinia)
 │   └── types/         tipos por dominio
-├── docs/              este documento, decisiones (adr/) y guías (guias/)
-└── CLAUDE.md          guía de trabajo: diseño, reglas y convenciones
+└── docs/              este documento, decisiones (adr/) y guías (guias/)
 ```
 
-La estructura interna de cada app y las convenciones de código están en
-[CLAUDE.md §7](../CLAUDE.md#7-convenciones-del-backend) (backend) y
-[§8](../CLAUDE.md#8-convenciones-del-frontend) (frontend).
+Convenciones de código:
+
+- **Backend.** Cada app separa su código en paquetes (`models/`, `serializers/`, `views/`,
+  `services/`, `enums/`, `filters/`, `validators/`, `management/`), con un archivo por
+  clase, reexportado desde su `__init__.py`. La lógica de negocio va en `services/`, no
+  en las vistas. Lint con `flake8` (línea máxima de 100).
+- **Frontend.** Vue con `<script setup lang="ts">`, un servicio por dominio sobre
+  `BaseService` (el único que importa axios), tipos en `types/` y estilos con Bootstrap.
+  Formato con Prettier y lint con ESLint.
+- **Idioma.** El código y sus comentarios van en inglés; la documentación y todo texto
+  que ve el usuario, en español. Los comentarios son de una sola línea y solo explican lo
+  que el código no dice.
 
 ---
 
@@ -258,9 +265,22 @@ erDiagram
 | `Employee` | employees | Un modelo plano, espejo de la especificación de TH | Sí |
 | `ContractExtension` | employees | Prórroga de contrato (varias por empleado) | Sí |
 
-Detalle de campos, reglas y datos calculados (edad, antigüedad, valor hora):
-[CLAUDE.md §5](../CLAUDE.md#5-modelo-de-datos). Las listas de valores de cada campo
-están en `backend/employees/enums/`.
+Reglas del modelo de empleado:
+
+- Un empleado **no se borra**: se retira cambiando su estado (Activo / Retirado).
+- La identificación es **única sin importar el tipo de documento**: quien pasa de T.I. a
+  cédula con el mismo número conserva su registro.
+- Del cargo anterior se guarda solo el último, con sus fechas.
+- Son **obligatorios** los datos que tiene todo empleado. Quedan opcionales solo los que
+  no aplican a todos: foto, correo, título, dirección (Gerencia y Junta Directiva no
+  tienen), jefe inmediato, cargo anterior, auxilio de transporte, fecha de vencimiento,
+  prórroga indefinido, fondos de pensión y de cesantías, observaciones y formación.
+- Ciudad, municipio de nacimiento, nacionalidad y formación son texto libre.
+- Edad, antigüedad y valor hora (salario / 210, por la jornada de 42 horas semanales) se
+  **calculan y no se guardan**, para que no se desactualicen.
+
+Los campos están en `backend/employees/models/Employee.py` y las listas de valores de
+cada uno en `backend/employees/enums/`.
 
 ### 6.2 API
 
@@ -298,8 +318,10 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 ### 7.1 Perfiles de acceso
 
 Cada cuenta tiene un solo perfil (`User.profile`), que decide **qué empleados** (filas)
-y **qué datos** (columnas) ve. La matriz completa está en
-[CLAUDE.md §6](../CLAUDE.md#6-control-de-acceso). Este es el resumen:
+y **qué datos** (columnas) ve. La matriz completa está en el código, en
+`backend/employees/enums/EmployeeFieldGroup.py` (qué campos tiene cada bloque) y
+`backend/users/access/EmployeeFieldPolicy.py` (qué bloques ve cada perfil). Este es el
+resumen:
 
 | Perfil | Filas | Columnas ocultas | Escritura |
 |---|---|---|---|
@@ -370,7 +392,7 @@ Resultado esperado: abrir <http://localhost:5173/ingreso> e iniciar sesión.
 
 ### 8.1 Datos y cuentas de demostración
 
-Solo corren con `DEBUG=True` ([CLAUDE.md §9.1](../CLAUDE.md#91-datos-de-demostración)):
+Solo corren con `DEBUG=True`:
 
 ```powershell
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_employees   # ~80 empleados inventados
@@ -389,8 +411,7 @@ Las cuentas quedan como `demo.<perfil>@<dominio corporativo>`, con la contraseñ
 ### 8.3 Ramas
 
 `main` recibe solo desde `develop`, y el trabajo nuevo va en `feature/<nombre>`, que sale
-de `develop` y vuelve a `develop`. Los commits siguen *conventional commits* en inglés
-([CLAUDE.md §11](../CLAUDE.md#11-git-y-repositorio)).
+de `develop` y vuelve a `develop`. Los commits siguen *conventional commits* en inglés.
 
 ---
 
@@ -522,22 +543,22 @@ producción, TI recoge esa salida con su servidor de aplicación. Los ingresos s
 
 ## 12. Riesgos, deuda técnica y pendientes
 
-Los pendientes de negocio y de infraestructura se llevan en
-[CLAUDE.md §12](../CLAUDE.md#12-pendientes), con numeración fija. Aquí va el resumen de
-lo que afecta la entrega:
+Los pendientes de negocio y de infraestructura se llevan en esta tabla, con numeración
+fija: al cerrar uno se borra su fila sin renumerar las demás, para que las citas desde
+otros documentos sigan apuntando a lo mismo.
 
 | # | Tipo | Descripción | Impacto | Recomendación |
 |---|---|---|---|---|
 | 1 | Riesgo | El repositorio está en la **cuenta personal de GitHub** de Juan Trujillo. | Alto | Transferirlo a una organización o cuenta de Forjas |
-| 2 | Pendiente | **Servidor de producción sin definir**: sistema operativo, versión de SQL Server, proceso de despliegue y collation (CLAUDE.md §12 #7, #8). | Alto | TI lo define. Usar la lista de §9.3 |
-| 3 | Pendiente | **Quién administra el esquema**: migraciones de Django o scripts de TI (§12 #11). | Alto | Cerrarlo antes del primer despliegue: cambiarlo después, con datos cargados, exige migrar datos |
+| 2 | Pendiente | **Servidor de producción sin definir**: sistema operativo, versión de SQL Server, proceso de despliegue y collation. | Alto | TI lo define. Usar la lista de §9.3 |
+| 3 | Pendiente | **Quién administra el esquema**: migraciones de Django o scripts de TI. | Alto | Cerrarlo antes del primer despliegue: cambiarlo después, con datos cargados, exige migrar datos |
 | 4 | Pendiente | **Importación del Excel actual** no construida: sin ella no hay forma masiva de cargar los empleados reales. | Alto | Construir el servicio de importación (`openpyxl` ya está en las dependencias) |
-| 5 | Pendiente | **Dónde viven las fotos en producción** y cómo se respaldan (§12 #12). | Medio | TI define `MEDIA_ROOT` y su respaldo |
-| 6 | Riesgo | **Sin límite de intentos fallidos** en el ingreso (§12 #10). | Medio | Acordarlo con Seguridad de la Información. Opción barata: `ScopedRateThrottle` en `LoginView` |
+| 5 | Pendiente | **Dónde viven las fotos en producción** y cómo se respaldan. | Medio | TI define `MEDIA_ROOT` y su respaldo |
+| 6 | Riesgo | **Sin límite de intentos fallidos** en el ingreso. | Medio | Acordarlo con Seguridad de la Información. Opción barata: `ScopedRateThrottle` en `LoginView` |
 | 7 | Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
-| 8 | Pendiente | Exportación de listados e indicadores con gráficas, sin construir. Los indicadores del Excel no están definidos (CLAUDE.md §1.1). | Medio | Definirlos con Talento Humano |
-| 9 | Pendiente | Datos por confirmar con Talento Humano: volumen de empleados, tamaño de página y "prórroga indefinido" (§12 #3, #5, #14). | Bajo | Cerrarlos con TH |
-| 10 | Pendiente | Tiempo de inactividad de la sesión (hoy 8 horas) y retención del historial (§12 #6, §5.2). | Bajo | Seguridad de la Información |
+| 8 | Pendiente | Exportación de listados e indicadores con gráficas, sin construir. Los indicadores del Excel no están definidos. | Medio | Definirlos con Talento Humano |
+| 9 | Pendiente | Datos por confirmar con Talento Humano: volumen de empleados, tamaño de página y "prórroga indefinido". | Bajo | Cerrarlos con TH |
+| 10 | Pendiente | Tiempo de inactividad de la sesión (hoy 8 horas) y retención del historial. | Bajo | Seguridad de la Información |
 
 ---
 
@@ -549,7 +570,7 @@ lo que afecta la entrega:
 | Base de datos | No hay base de producción. En desarrollo: contenedor local | — | — | ☐ |
 | Archivos `.env` | No se entregan por el repositorio. Las claves están en los `.env.example` y los valores los genera TI | — | Ferney Lopez | ☐ |
 | Especificación de TH y organigrama DR-DI-03 | Fuente del modelo de datos. Fuera del repositorio | Talento Humano | Ferney Lopez | ☐ |
-| Documentación | Este documento, ADR, `CLAUDE.md`, guías de `docs/` e informe para TH | Juan Trujillo | Ferney Lopez | ☐ |
+| Documentación | Este documento, ADR, guías de `docs/` e informe para TH | Juan Trujillo | Ferney Lopez | ☐ |
 
 ### Acta de traspaso a TI
 
@@ -583,4 +604,5 @@ lo que afecta la entrega:
 
 | Versión | Fecha | Autor | Cambio |
 |---|---|---|---|
-| 0.1 | 2026-09-29 | Juan Trujillo | Borrador inicial a partir del código, `CLAUDE.md` y las guías de `docs/` |
+| 0.1 | 2026-09-29 | Juan Trujillo | Borrador inicial a partir del código y las guías de `docs/` |
+| 0.2 | 2026-10-01 | Juan Trujillo | El documento queda completo por sí solo: reglas del modelo, convenciones y pendientes propios |

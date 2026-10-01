@@ -1,8 +1,9 @@
 # SQL Server local en macOS (Apple Silicon)
 
 Cómo se montó el SQL Server de desarrollo en un Mac con chip Apple, y los comandos
-del día a día. La base de producción todavía no está definida (pendiente #8 del
-CLAUDE.md): lo de acá replica lo que se espera encontrar allá, no lo confirmado.
+del día a día. La base de producción todavía no está definida (pendiente 2 de la
+[documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes)): lo de acá replica lo que se espera
+encontrar allá, no lo confirmado.
 
 ---
 
@@ -39,7 +40,7 @@ intenta resolver una imagen ARM que no existe y falla.
 | unixODBC | 2.3.14 | Homebrew |
 
 La base se llama `sigth` y la aplicación se conecta con el login `sigth_app`,
-**nunca con `sa`** (CLAUDE.md §10.2).
+**nunca con `sa`**.
 
 ---
 
@@ -243,8 +244,9 @@ visibles en la lista de procesos. Conviene cargarlas en una variable con
 
 | # | Qué falta | Impacto si difiere de lo de acá |
 |---|---|---|
-| 8 | Collation real de la instancia de producción | Ordenamiento y comparación de `ñ` y tildes. Búsquedas de apellidos que se comportan distinto |
-| 9 | Versión real de SQL Server y sistema operativo del servidor | Se eligió 2022 por ser la más extendida on-premise; si TI tiene 2019, hay que verificarlo |
+| 1 | Collation real de la instancia de producción | Ordenamiento y comparación de `ñ` y tildes. Búsquedas de apellidos que se comportan distinto |
+| 2 | Versión real de SQL Server y sistema operativo del servidor | Se eligió 2022 por ser la más extendida on-premise; si TI tiene 2019, hay que verificarlo |
 
-Ambos se cierran con Infraestructura / TI. Al cerrarlos, actualizar la tabla de §2 y
+Ambos son parte del pendiente 2 de la documentación técnica y se cierran con
+Infraestructura / TI. Al cerrarlos, actualizar la tabla de §2 y
 eliminar la fila correspondiente.

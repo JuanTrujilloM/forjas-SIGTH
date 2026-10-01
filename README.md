@@ -51,6 +51,14 @@ El montaje completo de la base está en
    cd backend; .venv\Scripts\python.exe manage.py seed_demo_users
    ```
 
+## Fotos de los empleados
+
+Las fotos se guardan en la carpeta que indique `MEDIA_ROOT` en `backend/.env`; si queda
+vacío, van a `backend/media/`. Por ahora se deja así: esa carpeta no se publica como ruta
+pública, y las fotos solo salen por la API y por el admin, a quien tiene permiso de ver al
+empleado. Cuando se monte en producción, TI define dónde vive esa carpeta y cómo se
+respalda.
+
 ## Documentación
 
 | Documento | Para qué |
@@ -58,4 +66,3 @@ El montaje completo de la base está en
 | [`docs/DOCUMENTACION-TECNICA.md`](docs/DOCUMENTACION-TECNICA.md) | Documentación técnica y de traspaso a TI: arquitectura, API, seguridad, despliegue y operación |
 | [`docs/adr/`](docs/adr/) | Decisiones técnicas y su porqué |
 | [`docs/guias/`](docs/guias/) | Cómo funciona el ingreso y cómo montar SQL Server en Windows o macOS |
-| [`CLAUDE.md`](CLAUDE.md) | Guía de trabajo: diseño, control de acceso, convenciones y pendientes |

@@ -1,12 +1,13 @@
 # Autenticación
 
-Cómo entra la gente al SIGTH y qué decisiones hay detrás. Las reglas de fondo están en
-`CLAUDE.md` §2, §6 y §10.2; acá va lo operativo.
+Cómo entra la gente al SIGTH y qué decisiones hay detrás. Las reglas de fondo están en la
+[documentación técnica §7](../DOCUMENTACION-TECNICA.md#7-seguridad-accesos-y-datos-personales);
+acá va lo operativo.
 
 ## 1. Qué hace
 
 El acceso es con **correo corporativo y contraseña**. No hay SSO, no hay auto-registro y
-no hay recuperación pública de contraseña: las cuentas las crea TI (§2). Esto cierra el
+no hay recuperación pública de contraseña: las cuentas las crea TI. Esto cierra el
 pendiente que preguntaba si la autenticación sería con contraseña propia o con el SSO de
 la empresa.
 
@@ -54,7 +55,7 @@ Un correo desconocido, una contraseña equivocada y una cuenta desactivada devue
 ## 4. La sesión
 
 Cookie de sesión de Django, `httpOnly`, protegida por CSRF y revocable del lado del
-servidor (§10.2). El frontend no guarda ni escribe tokens.
+servidor. El frontend no guarda ni escribe tokens.
 
 Axios va con `withXSRFToken: true` además de `withCredentials`. Sin eso, desde Axios 1.6
 la cabecera `X-CSRFToken` solo se manda al mismo origen: en producción backend y frontend
@@ -65,8 +66,8 @@ trae `detail`.
 ## 5. Crear cuentas
 
 No hay pantalla para esto: las crea TI desde el admin de Django, o por consola. La
-contraseña **no se pasa por la línea de comandos** (§10.2), así que se usa el modo
-interactivo:
+contraseña **no se pasa por la línea de comandos**, porque quedaría en el historial del
+shell y en la lista de procesos, así que se usa el modo interactivo:
 
 ```bash
 cd backend && .venv/Scripts/python.exe manage.py createsuperuser
@@ -75,15 +76,16 @@ cd backend && .venv/Scripts/python.exe manage.py createsuperuser
 Pide el correo — que debe ser del dominio corporativo — y la contraseña sin mostrarla.
 Para una cuenta de negocio, crearla en el admin y asignarle su **perfil** y, según el
 perfil, su dirección (Director) o sus secciones (Líder). Sin perfil, la cuenta se trata
-como de TI y la API no le devuelve empleados (§6.1).
+como de TI y la API no le devuelve empleados.
 
 ## 6. Lo que este módulo NO trae
 
 - **No hay límite de intentos fallidos ni bloqueo de cuenta.** Hoy se puede probar
   contraseñas contra `/api/auth/login/` cuantas veces se quiera, sin freno ni registro
-  de los fallos. El sistema es interno y no está expuesto a internet (§2), lo que reduce
+  de los fallos. El sistema es interno y no está expuesto a internet, lo que reduce
   el riesgo pero no lo elimina: alguien dentro de la red puede intentarlo. Está anotado
-  como pendiente **§12 #10** para acordarlo con Seguridad de la Información. La forma
+  como pendiente 6 de la [documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes) para acordarlo con
+  Seguridad de la Información. La forma
   más barata de cerrarlo sería un `ScopedRateThrottle` de DRF sobre `LoginView`, que no
   agrega dependencias.
 - **No hay recuperación de contraseña.** La pantalla solo remite a Recursos Humanos o TI.

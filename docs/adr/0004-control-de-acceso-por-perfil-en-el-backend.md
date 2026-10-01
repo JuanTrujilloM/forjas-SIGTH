@@ -21,7 +21,8 @@ matriz de campos por dirección, se retiró.
 - Un empleado fuera de alcance responde **404**, no 403.
 - Solo Talento Humano escribe.
 
-Detalle: `CLAUDE.md` §6.
+Detalle: [documentación técnica §7.1](../DOCUMENTACION-TECNICA.md#71-perfiles-de-acceso) y el
+código de `backend/users/access/`.
 
 ## Consecuencias
 
