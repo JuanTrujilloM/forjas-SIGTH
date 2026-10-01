@@ -79,6 +79,7 @@ export interface Employee {
   immediate_boss_name?: string | null
   hire_date?: string | null
   seniority?: Seniority | null
+  training?: string
   current_salary?: string | null
   salary_type?: string
   hourly_rate?: string | null

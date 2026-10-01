@@ -412,8 +412,8 @@ class Command(BaseCommand):
             nationality='Venezolana' if is_foreign else 'Colombiana',
             ethnicity=rnd.choices(
                 [Ethnicity.NONE, Ethnicity.AFRO_COLOMBIAN, Ethnicity.UNDISCLOSED,
-                 Ethnicity.INDIGENOUS_ROMA],
-                weights=[78, 12, 8, 2],
+                 Ethnicity.INDIGENOUS, Ethnicity.ROMA],
+                weights=[78, 12, 8, 1, 1],
             )[0],
             family_composition=self._family_composition(age, marital_status, has_children),
             dependents_count=dependents,

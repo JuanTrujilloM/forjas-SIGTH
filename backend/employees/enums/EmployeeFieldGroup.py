@@ -64,6 +64,7 @@ EMPLOYEE_FIELD_GROUPS: dict[EmployeeFieldGroup, frozenset[str]] = {
         'immediate_boss_name',
         'hire_date',
         'seniority',
+        'training',
     }),
     EmployeeFieldGroup.COMPENSATION_AND_CONTRACT: frozenset({
         'current_salary',

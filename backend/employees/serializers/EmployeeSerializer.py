@@ -9,6 +9,10 @@ from .ContractExtensionSerializer import ContractExtensionSerializer
 from .EmployeePhotoUrlField import EmployeePhotoUrlField
 
 
+# main code
+REQUIRED_MESSAGE = 'Este campo es obligatorio.'
+
+
 # main class
 class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
     photo = EmployeePhotoUrlField()
@@ -71,6 +75,7 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'immediate_boss_name',
             'hire_date',
             'seniority',
+            'training',
             'current_salary',
             'salary_type',
             'hourly_rate',
@@ -91,6 +96,19 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'dependents_count',
             'socioeconomic_stratum',
         ]
+
+    # one message for a missing value, whether it arrives absent, null or blank: DRF has
+    # three, and "no puede ser nulo" means nothing to Talent Management
+    def get_fields(self) -> dict:
+        fields = super().get_fields()
+
+        for field in fields.values():
+            if field.required:
+                field.error_messages.update(
+                    required=REQUIRED_MESSAGE, null=REQUIRED_MESSAGE, blank=REQUIRED_MESSAGE
+                )
+
+        return fields
 
     def validate(self, attrs: dict) -> dict:
         attrs = super().validate(attrs)

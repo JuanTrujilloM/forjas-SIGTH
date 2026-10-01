@@ -59,7 +59,7 @@ class EmployeeAdmin(EmployeePolicyAdminMixin, SimpleHistoryAdmin):
             'collective_agreement', 'position', 'position_start_date', 'previous_position',
             'previous_position_start_date', 'previous_position_end_date', 'is_leader',
             'section', 'cost_center', 'area', 'additional_role', 'immediate_boss', 'hire_date',
-            'seniority',
+            'seniority', 'training',
         )}),
         ('Salario y contrato', {'fields': (
             'current_salary', 'salary_type', 'hourly_rate', 'transport_allowance',

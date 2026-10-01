@@ -38,8 +38,6 @@ from .Position import Position
 
 
 # main class
-# PENDING (12, #15): only status, identification and name are required until Talent
-# Management says which other fields are mandatory
 class Employee(models.Model):
     # fields
     id = models.AutoField(primary_key=True)
@@ -73,46 +71,39 @@ class Employee(models.Model):
         verbose_name='Foto',
         help_text='JPG, PNG o WebP de máximo 5 MB',
     )
-    birth_date = models.DateField(null=True, blank=True, verbose_name='Fecha de nacimiento')
-    sex = models.CharField(max_length=10, choices=Sex.choices, blank=True, verbose_name='Sexo')
+    birth_date = models.DateField(verbose_name='Fecha de nacimiento')
+    sex = models.CharField(max_length=10, choices=Sex.choices, verbose_name='Sexo')
     blood_type = models.CharField(
-        max_length=15, choices=BloodType.choices, blank=True, verbose_name='Grupo sanguíneo'
+        max_length=15, choices=BloodType.choices, verbose_name='Grupo sanguíneo'
     )
     marital_status = models.CharField(
-        max_length=20, choices=MaritalStatus.choices, blank=True, verbose_name='Estado civil'
+        max_length=20, choices=MaritalStatus.choices, verbose_name='Estado civil'
     )
-    has_children = models.BooleanField(null=True, blank=True, verbose_name='Tiene hijos')
+    has_children = models.BooleanField(verbose_name='Tiene hijos')
     mobile_phone = models.CharField(
         max_length=20,
-        blank=True,
         validators=[RegexValidator(r'^\d+$', 'El celular solo lleva números.')],
         verbose_name='Celular',
     )
     personal_email = models.EmailField(blank=True, verbose_name='Correo electrónico')
-    address = models.CharField(max_length=200, blank=True, verbose_name='Dirección de residencia')
-    neighborhood = models.CharField(max_length=120, blank=True, verbose_name='Barrio')
-    # PENDING (12, #16): city, birth municipality and nationality are free text until
-    # Talent Management provides their lists
-    city = models.CharField(max_length=120, blank=True, verbose_name='Ciudad')
+    address = models.CharField(max_length=200, verbose_name='Dirección de residencia')
+    neighborhood = models.CharField(max_length=120, verbose_name='Barrio')
+    city = models.CharField(max_length=120, verbose_name='Ciudad')
     education_level = models.CharField(
-        max_length=30, choices=EducationLevel.choices, blank=True, verbose_name='Nivel educativo'
+        max_length=30, choices=EducationLevel.choices, verbose_name='Nivel educativo'
     )
     degree_title = models.CharField(max_length=200, blank=True, verbose_name='Título')
     employment_type = models.CharField(
-        max_length=20, choices=EmploymentType.choices, blank=True, verbose_name='Tipo de vinculación'
+        max_length=20, choices=EmploymentType.choices, verbose_name='Tipo de vinculación'
     )
     category = models.CharField(
-        max_length=30, choices=EmployeeCategory.choices, blank=True, verbose_name='Categoría'
+        max_length=30, choices=EmployeeCategory.choices, verbose_name='Categoría'
     )
     evaluation_group = models.CharField(
-        max_length=20, choices=EvaluationGroup.choices, blank=True, verbose_name='Grupo de evaluación'
+        max_length=20, choices=EvaluationGroup.choices, verbose_name='Grupo de evaluación'
     )
-    collective_agreement = models.BooleanField(
-        null=True, blank=True, verbose_name='Pacto colectivo'
-    )
-    position_start_date = models.DateField(
-        null=True, blank=True, verbose_name='Fecha de inicio del cargo actual'
-    )
+    collective_agreement = models.BooleanField(verbose_name='Pacto colectivo')
+    position_start_date = models.DateField(verbose_name='Fecha de inicio del cargo actual')
     previous_position_start_date = models.DateField(
         null=True, blank=True, verbose_name='Fecha de inicio del cargo anterior'
     )
@@ -120,30 +111,31 @@ class Employee(models.Model):
         null=True, blank=True, verbose_name='Fecha de fin del cargo anterior'
     )
     is_leader = models.BooleanField(
-        null=True,
-        blank=True,
         verbose_name='Es líder',
         help_text='Con cargo de liderazgo o personal a cargo. No da acceso al sistema',
     )
     cost_center = models.CharField(
-        max_length=20, choices=CostCenter.choices, blank=True, verbose_name='Centro de costos'
+        max_length=20, choices=CostCenter.choices, verbose_name='Centro de costos'
     )
-    area = models.CharField(max_length=20, choices=Area.choices, blank=True, verbose_name='Área')
+    area = models.CharField(max_length=20, choices=Area.choices, verbose_name='Área')
     additional_role = models.CharField(
-        max_length=30, choices=AdditionalRole.choices, blank=True, verbose_name='Rol adicional'
+        max_length=30, choices=AdditionalRole.choices, verbose_name='Rol adicional'
     )
-    hire_date = models.DateField(null=True, blank=True, verbose_name='Fecha de ingreso')
+    hire_date = models.DateField(verbose_name='Fecha de ingreso')
+    training = models.TextField(
+        blank=True, verbose_name='Formación', help_text='AROs y formaciones, en texto libre'
+    )
     current_salary = models.DecimalField(
-        max_digits=14, decimal_places=2, null=True, blank=True, verbose_name='Salario actual'
+        max_digits=14, decimal_places=2, verbose_name='Salario actual'
     )
     salary_type = models.CharField(
-        max_length=30, choices=SalaryType.choices, blank=True, verbose_name='Tipo de salario'
+        max_length=30, choices=SalaryType.choices, verbose_name='Tipo de salario'
     )
     transport_allowance = models.DecimalField(
         max_digits=14, decimal_places=2, null=True, blank=True, verbose_name='Auxilio de transporte'
     )
     contract_type = models.CharField(
-        max_length=30, choices=ContractType.choices, blank=True, verbose_name='Tipo de contrato'
+        max_length=30, choices=ContractType.choices, verbose_name='Tipo de contrato'
     )
     contract_end_date = models.DateField(
         null=True, blank=True, verbose_name='Fecha de vencimiento del contrato'
@@ -153,10 +145,10 @@ class Employee(models.Model):
         max_length=200, blank=True, verbose_name='Prórroga indefinido'
     )
     occupational_risk_insurer = models.CharField(
-        max_length=30, choices=OccupationalRiskInsurer.choices, blank=True, verbose_name='ARL'
+        max_length=30, choices=OccupationalRiskInsurer.choices, verbose_name='ARL'
     )
     health_insurer = models.CharField(
-        max_length=30, choices=HealthInsurer.choices, blank=True, verbose_name='EPS'
+        max_length=30, choices=HealthInsurer.choices, verbose_name='EPS'
     )
     pension_fund = models.CharField(
         max_length=30, choices=PensionFund.choices, blank=True, verbose_name='Fondo de pensión'
@@ -165,26 +157,19 @@ class Employee(models.Model):
         max_length=30, choices=SeveranceFund.choices, blank=True, verbose_name='Fondo de cesantías'
     )
     notes = models.TextField(blank=True, verbose_name='Alertas / Observaciones')
-    birth_municipality = models.CharField(
-        max_length=120, blank=True, verbose_name='Municipio de nacimiento'
-    )
-    nationality = models.CharField(max_length=120, blank=True, verbose_name='Nacionalidad')
+    birth_municipality = models.CharField(max_length=120, verbose_name='Municipio de nacimiento')
+    nationality = models.CharField(max_length=120, verbose_name='Nacionalidad')
     ethnicity = models.CharField(
-        max_length=30, choices=Ethnicity.choices, blank=True, verbose_name='Pertenencia étnica'
+        max_length=30, choices=Ethnicity.choices, verbose_name='Pertenencia étnica'
     )
     family_composition = models.CharField(
         max_length=30,
         choices=FamilyComposition.choices,
-        blank=True,
         verbose_name='Composición familiar',
     )
-    dependents_count = models.PositiveSmallIntegerField(
-        null=True, blank=True, verbose_name='Número de personas a cargo'
-    )
+    dependents_count = models.PositiveSmallIntegerField(verbose_name='Número de personas a cargo')
     socioeconomic_stratum = models.PositiveSmallIntegerField(
         choices=SocioeconomicStratum.choices,
-        null=True,
-        blank=True,
         verbose_name='Estrato socioeconómico',
     )
 
@@ -201,16 +186,12 @@ class Employee(models.Model):
     section = models.ForeignKey(
         'users.Section',
         on_delete=models.PROTECT,
-        null=True,
-        blank=True,
         related_name='employees',
         verbose_name='Sección',
     )
     position = models.ForeignKey(
         Position,
         on_delete=models.PROTECT,
-        null=True,
-        blank=True,
         related_name='current_employees',
         verbose_name='Cargo actual',
     )

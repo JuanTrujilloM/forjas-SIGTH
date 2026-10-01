@@ -78,7 +78,9 @@ function buildPayload(): EmployeePayload {
     for (const field of block.fields) {
       const value = form.value[field.name] ?? null
       const isEmpty = value === '' || value === null
-      const emptyValue = EMPTY_AS_NULL.has(field.kind) || field.nullable ? null : ''
+      // null and not '' for a required field, so it fails as missing and not as an invalid choice
+      const emptyValue =
+        field.required || EMPTY_AS_NULL.has(field.kind) || field.nullable ? null : ''
 
       payload[field.name] = isEmpty ? emptyValue : value
     }
