@@ -357,7 +357,7 @@ residencia y foto. Las medidas son:
 ### 7.4 Sesión y contraseñas
 
 - Cookie de sesión de Django: `httpOnly`, `SameSite=Lax`, protegida por CSRF, con
-  duración de **8 horas** renovadas en cada petición.
+  duración de **4 horas** renovadas en cada petición.
 - Contraseñas con los validadores estándar de Django.
 - **Sin límite de intentos fallidos** en el ingreso (§12).
 - Con `DEBUG=False` se activan HTTPS obligatorio, HSTS, cookies seguras,
@@ -557,8 +557,8 @@ otros documentos sigan apuntando a lo mismo.
 | 6 | Riesgo | **Sin límite de intentos fallidos** en el ingreso. | Medio | Acordarlo con Seguridad de la Información. Opción barata: `ScopedRateThrottle` en `LoginView` |
 | 7 | Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
 | 8 | Pendiente | Exportación de listados e indicadores con gráficas, sin construir. Los indicadores del Excel no están definidos. | Medio | Definirlos con Talento Humano |
-| 9 | Pendiente | Datos por confirmar con Talento Humano: volumen de empleados, tamaño de página y "prórroga indefinido". | Bajo | Cerrarlos con TH |
-| 10 | Pendiente | Tiempo de inactividad de la sesión (hoy 8 horas) y retención del historial. | Bajo | Seguridad de la Información |
+| 9 | Pendiente | Volumen real de empleados, direcciones y usuarios concurrentes, por confirmar con Talento Humano. | Bajo | Cerrarlo con TH |
+| 10 | Pendiente | Tiempo de retención del historial de auditoría. | Bajo | Seguridad de la Información |
 
 ---
 

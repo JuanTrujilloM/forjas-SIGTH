@@ -140,7 +140,6 @@ class Employee(models.Model):
     contract_end_date = models.DateField(
         null=True, blank=True, verbose_name='Fecha de vencimiento del contrato'
     )
-    # PENDING: free text until Talent Management says what this field holds
     indefinite_extension = models.CharField(
         max_length=200, blank=True, verbose_name='Prórroga indefinido'
     )

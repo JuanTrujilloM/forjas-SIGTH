@@ -123,7 +123,6 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # PENDING: confirm the page size against the real employee volume
     'PAGE_SIZE': 25,
 }
 
@@ -131,8 +130,7 @@ SESSION_COOKIE_HTTPONLY = True
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# PENDING: confirm the inactivity timeout with Information Security
-SESSION_COOKIE_AGE = 60 * 60 * 8
+SESSION_COOKIE_AGE = 60 * 60 * 4
 
 SESSION_SAVE_EVERY_REQUEST = True
 
