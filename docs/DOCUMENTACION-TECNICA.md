@@ -359,7 +359,8 @@ residencia y foto. Las medidas son:
 - Cookie de sesión de Django: `httpOnly`, `SameSite=Lax`, protegida por CSRF, con
   duración de **4 horas** renovadas en cada petición.
 - Contraseñas con los validadores estándar de Django.
-- **Sin límite de intentos fallidos** en el ingreso (§12).
+- **Límite de intentos fallidos**: 5 por correo y 20 por IP; al pasarlo, el ingreso queda
+  bloqueado 15 minutos ([`autenticacion.md` §3](guias/autenticacion.md#3-endpoints)).
 - Con `DEBUG=False` se activan HTTPS obligatorio, HSTS, cookies seguras,
   `X-Frame-Options: DENY` y la API solo responde JSON.
 
@@ -439,6 +440,7 @@ de `develop` y vuelve a `develop`. Los commits siguen *conventional commits* en 
 | `CORS_ALLOWED_ORIGINS` | Orígenes del frontend (nunca comodín) | Vacío si front y back comparten dominio |
 | `CSRF_TRUSTED_ORIGINS` | Orígenes que pueden enviar POST | Dominio del servidor |
 | `CORPORATE_EMAIL_DOMAIN` | Dominio de los correos que pueden entrar, sin `@` | `forjasbolivar.com` |
+| `NUM_PROXIES` | Proxies inversos delante de Django; de ahí sale la IP del límite de intentos | Los que monte TI; `0` si Django recibe las peticiones directo |
 | `MEDIA_ROOT` | Carpeta de las fotos | Carpeta fuera del código, respaldada, **nunca servida por el servidor web** |
 | `DEMO_USERS_PASSWORD` | Contraseña de las cuentas de demostración | **Vacío** |
 
@@ -461,7 +463,8 @@ El proceso lo define TI. Esto es lo que el sistema necesita, sea cual sea:
    - driver ODBC 18 instalado;
    - `backend/.env` completo según §9.2, con `DEBUG=False`.
 3. **Migraciones:** `python manage.py migrate`. Cargan también las direcciones, las
-   secciones y los cargos iniciales.
+   secciones y los cargos iniciales, y crean la tabla de caché `sigth_cache`, donde vive
+   el límite de intentos de ingreso.
 4. **Estáticos del admin:** `python manage.py collectstatic` (van a `backend/staticfiles/`).
 5. **Servidor de aplicación WSGI** apuntando a `config.wsgi.application`, detrás de un
    servidor web con HTTPS.
@@ -554,7 +557,6 @@ otros documentos sigan apuntando a lo mismo.
 | 3 | Pendiente | **Quién administra el esquema**: migraciones de Django o scripts de TI. | Alto | Cerrarlo antes del primer despliegue: cambiarlo después, con datos cargados, exige migrar datos |
 | 4 | Pendiente | **Importación del Excel actual** no construida: sin ella no hay forma masiva de cargar los empleados reales. | Alto | Construir el servicio de importación (`openpyxl` ya está en las dependencias) |
 | 5 | Pendiente | **Dónde viven las fotos en producción** y cómo se respaldan. | Medio | TI define `MEDIA_ROOT` y su respaldo |
-| 6 | Riesgo | **Sin límite de intentos fallidos** en el ingreso. | Medio | Acordarlo con Seguridad de la Información. Opción barata: `ScopedRateThrottle` en `LoginView` |
 | 7 | Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
 | 8 | Pendiente | Exportación de listados e indicadores con gráficas, sin construir. Los indicadores del Excel no están definidos. | Medio | Definirlos con Talento Humano |
 | 9 | Pendiente | Volumen real de empleados, direcciones y usuarios concurrentes, por confirmar con Talento Humano. | Bajo | Cerrarlo con TH |

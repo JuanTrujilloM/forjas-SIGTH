@@ -24,6 +24,7 @@ Detalle: [`docs/guias/autenticacion.md`](../guias/autenticacion.md).
 - El frontend no guarda ni escribe tokens, así que no hay dónde robarlos con JavaScript.
 - Desactivar una cuenta o cerrar su sesión tiene efecto inmediato.
 - TI administra las contraseñas: no hay recuperación automática.
-- No hay límite de intentos fallidos ni segundo factor (pendiente 6 de la
-  [documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes)).
+- No hay segundo factor. El límite de intentos fallidos se agregó después: 5 por correo
+  y 20 por IP, con 15 minutos de bloqueo
+  ([`autenticacion.md` §3](../guias/autenticacion.md#3-endpoints)).
 - Si más adelante se adopta el SSO de la empresa, habrá que reemplazar el ingreso.

@@ -124,6 +124,16 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 25,
+    # 0 ignores X-Forwarded-For, which a client could forge to dodge the per-IP login limit
+    'NUM_PROXIES': config('NUM_PROXIES', default=0, cast=int),
+}
+
+# shared by every worker process, unlike the default in-memory cache, so the login limit holds
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'sigth_cache',
+    },
 }
 
 SESSION_COOKIE_HTTPONLY = True

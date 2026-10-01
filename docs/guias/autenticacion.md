@@ -52,6 +52,40 @@ exige cuando ya hay sesión, que es justo lo que el ingreso no tiene todavía.
 Un correo desconocido, una contraseña equivocada y una cuenta desactivada devuelven
 **el mismo mensaje**. Distinguirlos dejaría averiguar qué cuentas existen.
 
+### Límite de intentos fallidos
+
+Lo aplica `users/services/LoginAttemptService.py` desde `LoginSerializer`, con dos
+contadores:
+
+| Contador | Límite | Contra qué protege |
+|---|---|---|
+| Por correo | 5 fallos | Probar contraseñas contra una cuenta |
+| Por IP | 20 fallos | Probar una contraseña común contra muchas cuentas |
+
+- Al llegar a un límite, el ingreso responde **429** con "Demasiados intentos fallidos.
+  Espera 15 minutos y vuelve a intentarlo." durante **15 minutos** desde el último fallo.
+  El bloqueo se levanta solo; TI no tiene que hacer nada.
+- Mientras dura, **ni la contraseña correcta entra**, y ni siquiera se comprueba: si se
+  comprobara, el atacante sabría cuándo acertó.
+- El límite por IP es más alto porque detrás de un NAT o un proxy varias personas
+  comparten dirección.
+- Un ingreso correcto reinicia el contador del correo, **no el de la IP**: si lo
+  reiniciara, cualquiera con cuenta propia podría borrarlo entrando con ella.
+- El correo se cuenta exista o no la cuenta, con la misma respuesta, para no revelar
+  cuáles existen.
+- Los contadores viven en la **caché de base de datos** (tabla `sigth_cache`, la crea la
+  migración `users.0006`), compartida por todos los procesos del servidor. La caché en
+  memoria que Django trae por defecto es una por proceso: con varios procesos el límite
+  se multiplicaría y se reiniciaría con cada reinicio. En la tabla las claves van con
+  hash: no guarda correos ni direcciones.
+- La IP sale de `REMOTE_ADDR`. Si en producción hay un proxy inverso delante de Django,
+  TI pone en `NUM_PROXIES` del `.env` cuántos hay; si no, todo el tráfico parecería venir
+  del proxy. Con `0`, el valor por defecto, se ignora `X-Forwarded-For`, que el cliente
+  puede falsificar para saltarse el límite.
+- Para desbloquear a alguien antes de tiempo no hay pantalla: se vacía la caché con
+  `python manage.py shell -c "from django.core.cache import cache; cache.clear()"`, lo
+  que reinicia todos los contadores.
+
 ## 4. La sesión
 
 Cookie de sesión de Django, `httpOnly`, protegida por CSRF y revocable del lado del
@@ -80,14 +114,8 @@ como de TI y la API no le devuelve empleados.
 
 ## 6. Lo que este módulo NO trae
 
-- **No hay límite de intentos fallidos ni bloqueo de cuenta.** Hoy se puede probar
-  contraseñas contra `/api/auth/login/` cuantas veces se quiera, sin freno ni registro
-  de los fallos. El sistema es interno y no está expuesto a internet, lo que reduce
-  el riesgo pero no lo elimina: alguien dentro de la red puede intentarlo. Está anotado
-  como pendiente 6 de la [documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes) para acordarlo con
-  Seguridad de la Información. La forma
-  más barata de cerrarlo sería un `ScopedRateThrottle` de DRF sobre `LoginView`, que no
-  agrega dependencias.
+- **No hay bloqueo permanente de cuenta.** El límite de intentos (§3) bloquea 15
+  minutos y se levanta solo.
 - **No hay recuperación de contraseña.** La pantalla solo remite a Recursos Humanos o TI.
 - **No hay registro de los ingresos.** Queda `last_login`, nada más: no se guarda desde
   qué IP ni cuándo se falló.
