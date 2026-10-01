@@ -536,7 +536,7 @@ lo que afecta la entrega:
 | 6 | Riesgo | **Sin límite de intentos fallidos** en el ingreso (§12 #10). | Medio | Acordarlo con Seguridad de la Información. Opción barata: `ScopedRateThrottle` en `LoginView` |
 | 7 | Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
 | 8 | Pendiente | Exportación de listados e indicadores con gráficas, sin construir. Los indicadores del Excel no están definidos (CLAUDE.md §1.1). | Medio | Definirlos con Talento Humano |
-| 9 | Pendiente | Datos por confirmar con Talento Humano: volumen de empleados, tamaño de página, campos obligatorios, "prórroga indefinido" y listas de ciudades (§12 #3, #5, #14, #15, #16). | Bajo | Cerrarlos con TH |
+| 9 | Pendiente | Datos por confirmar con Talento Humano: volumen de empleados, tamaño de página y "prórroga indefinido" (§12 #3, #5, #14). | Bajo | Cerrarlos con TH |
 | 10 | Pendiente | Tiempo de inactividad de la sesión (hoy 8 horas) y retención del historial (§12 #6, §5.2). | Bajo | Seguridad de la Información |
 
 ---
