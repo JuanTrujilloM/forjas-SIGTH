@@ -52,6 +52,7 @@ onMounted(loadContractAlertCount)
 
 const navItems = computed(() => [
   { label: 'Directorio', path: '/empleados', badge: null },
+  { label: 'Reportes', path: '/reportes', badge: null },
   ...(session.user?.can_view_contract_alerts
     ? [{ label: 'Vencimientos', path: '/vencimientos', badge: contractAlertCount.value }]
     : []),

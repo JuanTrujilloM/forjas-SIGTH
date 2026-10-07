@@ -8,6 +8,7 @@ import EmployeeListView from '@/views/EmployeeListView.vue'
 import LoginView from '@/views/LoginView.vue'
 import OrgChartView from '@/views/OrgChartView.vue'
 import OrgStructureView from '@/views/OrgStructureView.vue'
+import ReportsView from '@/views/ReportsView.vue'
 
 // main code
 const routes = [
@@ -48,6 +49,12 @@ const routes = [
     name: 'employee-edit',
     component: EmployeeFormView,
     meta: { requiresAuth: true, requiresEditor: true },
+  },
+  {
+    path: '/reportes',
+    name: 'reports',
+    component: ReportsView,
+    meta: { requiresAuth: true },
   },
   {
     path: '/vencimientos',
