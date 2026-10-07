@@ -61,6 +61,8 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
   de vencimiento del contrato), orden y miniatura de la foto. Los filtros quedan en la
   dirección de la página, así que se conservan al volver de una ficha. Es la pantalla de
   inicio.
+- **Estructura organizacional**: organigrama por jefe inmediato y vista agrupada por
+  dirección y sección, sobre el alcance de cada perfil.
 - **Ficha del empleado**, organizada por bloques de datos.
 - **Creación y edición** de empleados, solo para Talento Humano, incluidas la foto y las
   prórrogas de contrato.
@@ -311,6 +313,7 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to`, `retirement_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
+| GET | `/api/employees/org-chart/` | Empleados activos del alcance con su jefe inmediato, cargo, dirección y sección, para el organigrama | Autenticado, recortado por perfil |
 | GET | `/api/employees/contract-alerts/` | Activos cuyo contrato vence en 50 días o menos, y los ya vencidos, con los días que faltan | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
 | GET | `/api/employees/{id}/extensions/` | Nueva fecha de vencimiento sugerida por la regla legal | Solo Talento Humano |
@@ -326,6 +329,8 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 |---|---|---|
 | `/ingreso` | Ingreso | Pública |
 | `/` → `/empleados` | Lista de empleados (inicio) | Autenticado |
+| `/empleados/organigrama` | Organigrama por jefe inmediato (empleados activos del alcance) | Autenticado |
+| `/empleados/estructura` | Empleados activos agrupados por dirección y sección | Autenticado |
 | `/empleados/:id` | Ficha del empleado | Autenticado |
 | `/empleados/nuevo` · `/empleados/:id/editar` | Formulario de empleado | Solo Talento Humano (el backend lo vuelve a validar) |
 | `/vencimientos` | Vencimientos de contrato: activos que vencen en 50 días o menos y los ya vencidos | Solo Talento Humano |
