@@ -150,3 +150,17 @@ export interface CostCenter {
   name: string
   is_active: boolean
 }
+
+export interface ContractAlert {
+  id: number
+  full_name: string
+  id_type: string
+  id_number: number
+  division_name: string | null
+  section_name: string | null
+  position_name: string | null
+  contract_type: string
+  contract_end_date: string
+  days_until_contract_end: number
+  extension_count: number
+}

@@ -7,7 +7,9 @@ import EmployeeInfoCard from '@/components/EmployeeInfoCard.vue'
 import EmployeePhoto from '@/components/EmployeePhoto.vue'
 import EmployeeService from '@/services/EmployeeService'
 import {
+  CONTRACT_ALERT_DAYS,
   daysUntil,
+  describeContractEnd,
   formatBoolean,
   formatChoice,
   formatDate,
@@ -33,8 +35,6 @@ const WIDE_BLOCKS = new Set<EmployeeBlockId>([
   'employment',
   'compensation_and_contract',
 ])
-
-const CONTRACT_WARNING_DAYS = 60
 
 const RECENT_EXTENSIONS = 6
 
@@ -145,15 +145,11 @@ function contractWarning(current: Employee): Pick<EmployeeInfoRow, 'hint' | 'ton
     return {}
   }
 
-  if (days < 0) {
-    return { hint: `Venció hace ${-days} días`, tone: 'danger' }
+  if (days > CONTRACT_ALERT_DAYS) {
+    return {}
   }
 
-  if (days <= CONTRACT_WARNING_DAYS) {
-    return { hint: `Vence en ${days} días`, tone: 'warning' }
-  }
-
-  return {}
+  return { hint: describeContractEnd(days), tone: days < 0 ? 'danger' : 'warning' }
 }
 
 function formatField(current: Employee, field: EmployeeFieldSpec): string {

@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import forjasLogo from '@/assets/images/forjas-logo.svg'
+import EmployeeService from '@/services/EmployeeService'
 import BaseService from '@/shared/services/BaseService'
 import { useSessionStore } from '@/stores/session'
 
+const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 
 const isLoggingOut = ref(false)
 const errorMessage = ref<string | null>(null)
+const contractAlertCount = ref<number | null>(null)
 
 const scopeDescription = computed<string>(() => {
   const user = session.user
@@ -31,6 +34,21 @@ const scopeDescription = computed<string>(() => {
     ? `Ves los empleados de: ${user.section_names.join(', ')}.`
     : 'Tu cuenta no tiene secciones a cargo asignadas.'
 })
+
+// a failed count only hides the badge; the alerts page shows its own error
+async function loadContractAlertCount(): Promise<void> {
+  if (!session.user?.can_view_contract_alerts) {
+    return
+  }
+
+  try {
+    contractAlertCount.value = (await EmployeeService.getContractAlerts()).length
+  } catch {
+    contractAlertCount.value = null
+  }
+}
+
+onMounted(loadContractAlertCount)
 
 async function logout(): Promise<void> {
   isLoggingOut.value = true
@@ -58,7 +76,25 @@ async function logout(): Promise<void> {
 
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <RouterLink class="nav-link active" :to="{ name: 'employees' }">Empleados</RouterLink>
+            <RouterLink
+              class="nav-link"
+              :class="{ active: route.path.startsWith('/empleados') }"
+              :to="{ name: 'employees' }"
+            >
+              Empleados
+            </RouterLink>
+          </li>
+          <li v-if="session.user?.can_view_contract_alerts" class="nav-item">
+            <RouterLink class="nav-link" active-class="active" :to="{ name: 'contract-alerts' }">
+              Vencimientos
+              <span
+                v-if="contractAlertCount"
+                class="badge rounded-pill text-bg-warning ms-1"
+                :aria-label="`${contractAlertCount} contratos en alerta`"
+              >
+                {{ contractAlertCount }}
+              </span>
+            </RouterLink>
           </li>
         </ul>
 

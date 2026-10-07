@@ -101,3 +101,18 @@ export function daysUntil(value: string | null | undefined): number | null {
 
   return Math.round((target - start) / 86_400_000)
 }
+
+// same threshold as the backend's contract alert, so the detail and the alert page agree
+export const CONTRACT_ALERT_DAYS = 50
+
+export function describeContractEnd(days: number): string {
+  if (days < 0) {
+    return `Vencido hace ${-days} ${days === -1 ? 'día' : 'días'}`
+  }
+
+  if (days === 0) {
+    return 'Vence hoy'
+  }
+
+  return `Vence en ${days} ${days === 1 ? 'día' : 'días'}`
+}

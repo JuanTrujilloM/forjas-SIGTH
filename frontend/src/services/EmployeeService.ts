@@ -1,5 +1,6 @@
 import BaseService from '@/shared/services/BaseService'
 import type {
+  ContractAlert,
   ContractExtensionSuggestion,
   CostCenter,
   Employee,
@@ -41,6 +42,12 @@ export default class EmployeeService extends BaseService {
   public static update(id: number, payload: EmployeePayload): Promise<Employee> {
     return super.axiosInstance
       .patch<Employee>(`${EmployeeService.API_URL}${id}/`, payload)
+      .then((response) => response.data)
+  }
+
+  public static getContractAlerts(): Promise<ContractAlert[]> {
+    return super.axiosInstance
+      .get<ContractAlert[]>(`${EmployeeService.API_URL}contract-alerts/`)
       .then((response) => response.data)
   }
 
