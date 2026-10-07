@@ -1,4 +1,6 @@
 # external libraries imports
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -8,6 +10,11 @@ from django.utils import timezone
 from employees.enums import EmployeeStatus
 from employees.models import Employee, EmployeeSnapshot, MonthlyCut
 from employees.services import EmployeeRowService, MonthlyCutService
+
+
+# main code
+# the demo assumes this year's raise, so earlier months show the salary before it
+YEARLY_RAISE = Decimal('1.09')
 
 
 # main class
@@ -71,6 +78,15 @@ class Command(BaseCommand):
         data = EmployeeRowService.row(employee, cut.cut_date)
         data['status'] = status
         data['retirement_date'] = retired_on.isoformat() if retired else None
+
+        if cut.cut_date.year < timezone.localdate().year:
+            salary = (Decimal(data['current_salary']) / YEARLY_RAISE / 10000).quantize(
+                Decimal('1'), rounding=ROUND_HALF_UP
+            ) * 10000
+            data['current_salary'] = str(salary)
+            data['hourly_rate'] = str(
+                (salary / Employee.MONTHLY_WORK_HOURS).quantize(Decimal('0.01'), ROUND_HALF_UP)
+            )
 
         return EmployeeSnapshot(
             cut=cut,
