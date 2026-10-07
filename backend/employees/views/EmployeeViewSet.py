@@ -38,7 +38,7 @@ class EmployeeViewSet(
     viewsets.GenericViewSet,
 ):
     queryset = Employee.objects.select_related(
-        'division', 'section', 'position', 'previous_position', 'immediate_boss'
+        'division', 'section', 'position', 'previous_position', 'immediate_boss', 'cost_center'
     ).prefetch_related('extensions')
     permission_classes = [IsAuthenticated, EmployeeWritePermission]
     filter_backends = [DjangoFilterBackend, EmployeeFieldSearchFilter, EmployeeFieldOrderingFilter]

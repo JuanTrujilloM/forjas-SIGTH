@@ -12,7 +12,6 @@ from employees.enums import (
     Area,
     BloodType,
     ContractType,
-    CostCenter,
     EducationLevel,
     EmployeeCategory,
     EmployeeStatus,
@@ -33,6 +32,7 @@ from employees.enums import (
 from employees.services import EmployeePhotoPath
 from employees.validators import EmployeePhotoValidator
 
+from .CostCenter import CostCenter
 from .Position import Position
 
 
@@ -114,9 +114,6 @@ class Employee(models.Model):
         verbose_name='Es líder',
         help_text='Con cargo de liderazgo o personal a cargo. No da acceso al sistema',
     )
-    cost_center = models.CharField(
-        max_length=20, choices=CostCenter.choices, verbose_name='Centro de costos'
-    )
     area = models.CharField(max_length=20, choices=Area.choices, verbose_name='Área')
     additional_role = models.CharField(
         max_length=30, choices=AdditionalRole.choices, verbose_name='Rol adicional'
@@ -187,6 +184,12 @@ class Employee(models.Model):
         on_delete=models.PROTECT,
         related_name='employees',
         verbose_name='Sección',
+    )
+    cost_center = models.ForeignKey(
+        CostCenter,
+        on_delete=models.PROTECT,
+        related_name='employees',
+        verbose_name='Centro de costos',
     )
     position = models.ForeignKey(
         Position,
