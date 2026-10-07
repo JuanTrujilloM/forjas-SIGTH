@@ -445,10 +445,14 @@ Resultado esperado: abrir <http://localhost:5173/ingreso> e iniciar sesión.
 Solo corren con `DEBUG=True`:
 
 ```powershell
+cd backend; .venv\Scripts\python.exe manage.py seed_demo             # todo lo de abajo, en orden
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_employees   # ~80 empleados inventados
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_users       # una cuenta por perfil
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_cuts        # 12 cortes mensuales aproximados
 ```
+
+El recorrido para probar cada funcionalidad, cuenta por cuenta, está en
+[`guias/demo-funcionalidades.md`](guias/demo-funcionalidades.md).
 
 Las cuentas quedan como `demo.<perfil>@<dominio corporativo>`, con la contraseña de
 `DEMO_USERS_PASSWORD` del `.env`.
