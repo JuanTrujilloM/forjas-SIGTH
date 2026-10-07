@@ -271,7 +271,21 @@ class Command(BaseCommand):
             by_key[key] = employee
             section_positions.setdefault(section_name, []).append(positions[position_name])
 
+        self._bring_contract_ends_near(list(by_key.values()))
+
         return list(by_key.values())
+
+    # fixed offsets, not drawn, so the contract alerts always have an expired and a near case
+    def _bring_contract_ends_near(self, employees: list[Employee]) -> None:
+        candidates = [
+            employee for employee in employees
+            if employee.status == EmployeeStatus.ACTIVE
+            and employee.contract_type in CONTRACT_MONTHS
+        ]
+
+        for employee, days in zip(candidates[::3], [-6, 3, 12, 27, 41]):
+            employee.contract_end_date = self.today + timedelta(days=days)
+            employee.save(update_fields=['contract_end_date', 'updated_at'])
 
     def _build(self, *, index, role, position, division, section, boss, is_foreign, is_retired,
                note, previous_candidates) -> Employee:
