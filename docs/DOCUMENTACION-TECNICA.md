@@ -71,9 +71,12 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
 - **Admin de Django** para que TI gestione cuentas, direcciones y secciones, y para que
   Talento Humano gestione los catálogos de cargos y de centros de costos.
 
-**Aún no construido**: la importación del Excel actual, la exportación de listados
-y los indicadores con gráficas. Las dependencias `openpyxl` y `chart.js` ya están
-previstas para eso.
+- **Reportes y consultas** (`/reportes`): filtros combinados, elección y orden de campos,
+  vista previa y descarga en Excel, CSV o PDF, con reportes listos (ingresos y retiros
+  del mes, por dirección, por líder y por sección). Cada descarga queda registrada.
+
+**Aún no construido**: los indicadores con gráficas. La carga inicial de los datos reales
+la hace TI.
 
 ### 1.3 Objetivos de calidad
 
@@ -313,6 +316,9 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to`, `retirement_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
+| GET | `/api/employees/export-fields/` | Campos que el perfil puede elegir para un reporte | Autenticado |
+| GET | `/api/employees/report/?fields=…` | Vista previa paginada de un reporte, con los mismos filtros que el listado (más `team_of`: el equipo de un jefe, con toda su cadena) | Autenticado, recortado por perfil |
+| GET | `/api/employees/export/?file_format=xlsx\|csv\|pdf&fields=…` | Descarga del reporte; queda en el registro de descargas | Autenticado, recortado por perfil |
 | GET | `/api/employees/org-chart/` | Empleados activos del alcance con su jefe inmediato, cargo, dirección y sección, para el organigrama | Autenticado, recortado por perfil |
 | GET | `/api/employees/contract-alerts/` | Activos cuyo contrato vence en 50 días o menos, y los ya vencidos, con los días que faltan | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
@@ -333,6 +339,7 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | `/empleados/estructura` | Empleados activos agrupados por dirección y sección | Autenticado |
 | `/empleados/:id` | Ficha del empleado | Autenticado |
 | `/empleados/nuevo` · `/empleados/:id/editar` | Formulario de empleado | Solo Talento Humano (el backend lo vuelve a validar) |
+| `/reportes` | Reportes y consultas | Autenticado |
 | `/vencimientos` | Vencimientos de contrato: activos que vencen en 50 días o menos y los ya vencidos | Solo Talento Humano |
 
 ---
@@ -537,6 +544,8 @@ la versión nueva traía migraciones, revertirlas con `python manage.py migrate 
 ### 10.3 Operaciones sobre empleados
 
 - **Retirar a un empleado:** en su ficha, cambiar el estado a *Retirado*. Nunca se borra.
+- **Ver quién descargó qué:** en el admin, **Descargas de empleados** (usuario, fecha,
+  formato, filtros, campos y número de filas).
 - **Ver quién cambió un dato:** en el admin, abrir el empleado → **Historial**.
 
 ### 10.4 Incidentes comunes
@@ -570,6 +579,7 @@ producción, TI recoge esa salida con su servidor de aplicación. Los ingresos s
 | [0005](adr/0005-modelo-de-empleado-plano.md) | Un modelo de empleado plano, espejo de la especificación de TH | Aceptada |
 | [0006](adr/0006-fotos-solo-por-la-api.md) | Fotos de empleados servidas solo por la API | Aceptada |
 | [0007](adr/0007-historial-con-django-simple-history.md) | Historial de cambios con `django-simple-history` | Aceptada |
+| [0008](adr/0008-reportes-descargables-con-el-mismo-recorte.md) | Reportes descargables con el mismo recorte de acceso, y `reportlab` para el PDF | Aceptada |
 
 ---
 
