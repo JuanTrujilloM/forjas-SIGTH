@@ -44,10 +44,18 @@ class CostCenterAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
     ordering = ['code']
 
 
+# read-only: an extension is registered from the frontend, which also moves the contract end date
 class ContractExtensionInline(EmployeePolicyAdminMixin, admin.TabularInline):
     model = ContractExtension
     extra = 0
     fields = ['extension_date']
+    readonly_fields = ['extension_date']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
 
 
 @admin.register(Employee)
