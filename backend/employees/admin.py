@@ -3,7 +3,14 @@ from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
 
 # internal application code imports
-from employees.models import ContractAlertDispatch, ContractExtension, CostCenter, Employee, Position
+from employees.models import (
+    ContractAlertDispatch,
+    ContractExtension,
+    CostCenter,
+    Employee,
+    EmployeeExportLog,
+    Position,
+)
 from users.access import EmployeeFieldPolicy
 
 
@@ -48,6 +55,21 @@ class CostCenterAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
 class ContractAlertDispatchAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
     list_display = ['sent_on', 'employee_count', 'recipients', 'created_at']
     readonly_fields = ['sent_on', 'employee_count', 'recipients', 'created_at']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+
+@admin.register(EmployeeExportLog)
+class EmployeeExportLogAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
+    list_display = ['created_at', 'user', 'title', 'file_format', 'row_count']
+    list_filter = ['file_format']
+    search_fields = ['user__email', 'title']
+    readonly_fields = ['created_at', 'user', 'title', 'file_format', 'row_count', 'filters', 'fields']
+    list_select_related = ['user']
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False
