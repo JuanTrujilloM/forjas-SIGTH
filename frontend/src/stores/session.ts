@@ -11,11 +11,16 @@ export const useSessionStore = defineStore('session', () => {
 
   const isAuthenticated = computed<boolean>(() => user.value !== null)
 
+  // interface convenience only: the backend drops a hidden column on its own
+  function canRead(field: string): boolean {
+    return user.value?.readable_fields.includes(field) ?? false
+  }
+
   async function restore(): Promise<void> {
     try {
       user.value = await AuthService.getCurrentUser()
     } catch {
-      user.value = null 
+      user.value = null
     } finally {
       isRestored.value = true
     }
@@ -34,5 +39,5 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  return { user, isRestored, isAuthenticated, restore, login, logout }
+  return { user, isRestored, isAuthenticated, canRead, restore, login, logout }
 })

@@ -1,16 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import AppHeader from '@/components/AppHeader.vue'
 import EmployeeService from '@/services/EmployeeService'
 import OrganizationService from '@/services/OrganizationService'
 import { formatChoice } from '@/shared/employees/employeeFormat'
+import {
+  emptyFilters,
+  filtersFromQuery,
+  filtersToParams,
+  filtersToQuery,
+  hasActiveFilters,
+  pageFromQuery,
+} from '@/shared/employees/employeeListQuery'
 import BaseService from '@/shared/services/BaseService'
 import { useSessionStore } from '@/stores/session'
 import type { EmployeeChoices, EmployeeListItem, Page } from '@/types/employee.types'
 import type { CatalogItem } from '@/types/organization.types'
 
 const session = useSessionStore()
+const route = useRoute()
+const router = useRouter()
 
 // an account with no profile gets an empty list anyway; this only says why
 const hasProfile = Boolean(session.user?.profile)
@@ -20,16 +31,17 @@ const choices = ref<EmployeeChoices>({})
 const divisions = ref<CatalogItem[]>([])
 const sections = ref<CatalogItem[]>([])
 
-const currentPage = ref(1)
-const search = ref('')
-const status = ref('')
-const division = ref<number | null>(null)
-const section = ref<number | null>(null)
+const filters = ref(filtersFromQuery(route.query))
+const currentPage = ref(pageFromQuery(route.query))
 
 const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 
+const canFilterByContractEnd = computed(() => session.canRead('contract_end_date'))
+const isFiltered = computed(() => hasActiveFilters(filters.value))
+
 let searchTimer: ReturnType<typeof setTimeout> | undefined
+let lastSearch = filters.value.search
 
 async function loadEmployees(): Promise<void> {
   isLoading.value = true
@@ -37,11 +49,8 @@ async function loadEmployees(): Promise<void> {
 
   try {
     page.value = await EmployeeService.list({
+      ...filtersToParams(filters.value),
       page: currentPage.value,
-      search: search.value.trim() || undefined,
-      status: status.value || undefined,
-      division: division.value ?? undefined,
-      section: section.value ?? undefined,
     })
   } catch (error) {
     errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo cargar la lista.')
@@ -64,15 +73,41 @@ async function loadFilters(): Promise<void> {
 
 function goToPage(target: number): void {
   currentPage.value = target
+  router.replace({ query: filtersToQuery(filters.value, target) })
   loadEmployees()
 }
 
-watch([status, division, section], () => goToPage(1))
+function clearFilters(): void {
+  filters.value = emptyFilters()
+}
 
-watch(search, () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => goToPage(1), 300)
-})
+watch(
+  filters,
+  (current) => {
+    clearTimeout(searchTimer)
+
+    if (current.search !== lastSearch) {
+      lastSearch = current.search
+      searchTimer = setTimeout(() => goToPage(1), 300)
+      return
+    }
+
+    goToPage(1)
+  },
+  { deep: true },
+)
+
+// the header link to this same route clears the query without remounting the view
+watch(
+  () => route.query,
+  (query) => {
+    const current = JSON.stringify(filtersToQuery(filters.value, currentPage.value))
+
+    if (JSON.stringify(query) !== current) {
+      filters.value = filtersFromQuery(query)
+    }
+  },
+)
 
 onMounted(() => {
   if (!hasProfile) {
@@ -109,7 +144,7 @@ onMounted(() => {
         <label class="visually-hidden" for="search">Buscar</label>
         <input
           id="search"
-          v-model="search"
+          v-model="filters.search"
           class="form-control"
           type="search"
           placeholder="Buscar por nombre o identificación"
@@ -118,7 +153,7 @@ onMounted(() => {
 
       <div class="col-12 col-sm-4 col-md-2">
         <label class="visually-hidden" for="status">Estado</label>
-        <select id="status" v-model="status" class="form-select">
+        <select id="status" v-model="filters.status" class="form-select">
           <option value="">Todos los estados</option>
           <option v-for="option in choices.status" :key="option.value" :value="option.value">
             {{ option.label }}
@@ -128,7 +163,7 @@ onMounted(() => {
 
       <div class="col-12 col-sm-4 col-md-3">
         <label class="visually-hidden" for="division">Dirección</label>
-        <select id="division" v-model="division" class="form-select">
+        <select id="division" v-model="filters.division" class="form-select">
           <option :value="null">Todas las direcciones</option>
           <option v-for="item in divisions" :key="item.id" :value="item.id">{{ item.name }}</option>
         </select>
@@ -136,10 +171,52 @@ onMounted(() => {
 
       <div class="col-12 col-sm-4 col-md-3">
         <label class="visually-hidden" for="section">Sección</label>
-        <select id="section" v-model="section" class="form-select">
+        <select id="section" v-model="filters.section" class="form-select">
           <option :value="null">Todas las secciones</option>
           <option v-for="item in sections" :key="item.id" :value="item.id">{{ item.name }}</option>
         </select>
+      </div>
+
+      <div class="col-12 col-lg-5">
+        <div class="input-group">
+          <span class="input-group-text">Ingreso</span>
+          <input
+            v-model="filters.hireDateFrom"
+            class="form-control"
+            type="date"
+            aria-label="Fecha de ingreso desde"
+          />
+          <input
+            v-model="filters.hireDateTo"
+            class="form-control"
+            type="date"
+            aria-label="Fecha de ingreso hasta"
+          />
+        </div>
+      </div>
+
+      <div v-if="canFilterByContractEnd" class="col-12 col-lg-5">
+        <div class="input-group">
+          <span class="input-group-text">Vencimiento</span>
+          <input
+            v-model="filters.contractEndDateFrom"
+            class="form-control"
+            type="date"
+            aria-label="Fecha de vencimiento del contrato desde"
+          />
+          <input
+            v-model="filters.contractEndDateTo"
+            class="form-control"
+            type="date"
+            aria-label="Fecha de vencimiento del contrato hasta"
+          />
+        </div>
+      </div>
+
+      <div v-if="isFiltered" class="col-12 col-lg-2">
+        <button class="btn btn-outline-secondary w-100" type="button" @click="clearFilters">
+          Limpiar filtros
+        </button>
       </div>
     </form>
 
