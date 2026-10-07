@@ -43,6 +43,14 @@ class EmployeeFieldPolicy:
             and user.profile == AccessProfile.TALENT_MANAGEMENT
         )
 
+    @staticmethod
+    def can_view_contract_alerts(user: AbstractBaseUser | AnonymousUser | None) -> bool:
+        return bool(
+            user is not None
+            and user.is_authenticated
+            and user.profile == AccessProfile.TALENT_MANAGEMENT
+        )
+
     # the admin shows every field, so only Talent Management and IT (no profile) enter
     @staticmethod
     def can_view_admin(user: AbstractBaseUser | AnonymousUser | None) -> bool:

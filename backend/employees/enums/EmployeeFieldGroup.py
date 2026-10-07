@@ -75,7 +75,9 @@ EMPLOYEE_FIELD_GROUPS: dict[EmployeeFieldGroup, frozenset[str]] = {
         'transport_allowance',
         'contract_type',
         'contract_end_date',
+        'days_until_contract_end',
         'extensions',
+        'extension_count',
         'indefinite_extension',
     }),
     EmployeeFieldGroup.HEALTH_AND_RISK: frozenset({
