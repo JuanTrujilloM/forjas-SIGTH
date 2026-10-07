@@ -50,6 +50,13 @@ async function loadContractAlertCount(): Promise<void> {
 
 onMounted(loadContractAlertCount)
 
+const navItems = computed(() => [
+  { label: 'Directorio', path: '/empleados', badge: null },
+  ...(session.user?.can_view_contract_alerts
+    ? [{ label: 'Vencimientos', path: '/vencimientos', badge: contractAlertCount.value }]
+    : []),
+])
+
 async function logout(): Promise<void> {
   isLoggingOut.value = true
   errorMessage.value = null
@@ -75,24 +82,19 @@ async function logout(): Promise<void> {
         </RouterLink>
 
         <ul class="navbar-nav me-auto">
-          <li class="nav-item">
+          <li v-for="item in navItems" :key="item.label" class="nav-item">
             <RouterLink
               class="nav-link"
-              :class="{ active: route.path.startsWith('/empleados') }"
-              :to="{ name: 'employees' }"
+              :class="{ active: route.path.startsWith(item.path) }"
+              :to="item.path"
             >
-              Empleados
-            </RouterLink>
-          </li>
-          <li v-if="session.user?.can_view_contract_alerts" class="nav-item">
-            <RouterLink class="nav-link" active-class="active" :to="{ name: 'contract-alerts' }">
-              Vencimientos
+              {{ item.label }}
               <span
-                v-if="contractAlertCount"
+                v-if="item.badge"
                 class="badge rounded-pill text-bg-warning ms-1"
-                :aria-label="`${contractAlertCount} contratos en alerta`"
+                :aria-label="`${item.badge} contratos en alerta`"
               >
-                {{ contractAlertCount }}
+                {{ item.badge }}
               </span>
             </RouterLink>
           </li>

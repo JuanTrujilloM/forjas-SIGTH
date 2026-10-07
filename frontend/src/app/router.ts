@@ -6,6 +6,8 @@ import EmployeeDetailView from '@/views/EmployeeDetailView.vue'
 import EmployeeFormView from '@/views/EmployeeFormView.vue'
 import EmployeeListView from '@/views/EmployeeListView.vue'
 import LoginView from '@/views/LoginView.vue'
+import OrgChartView from '@/views/OrgChartView.vue'
+import OrgStructureView from '@/views/OrgStructureView.vue'
 
 // main code
 const routes = [
@@ -15,6 +17,18 @@ const routes = [
     path: '/empleados',
     name: 'employees',
     component: EmployeeListView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/empleados/organigrama',
+    name: 'org-chart',
+    component: OrgChartView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/empleados/estructura',
+    name: 'org-structure',
+    component: OrgStructureView,
     meta: { requiresAuth: true },
   },
   {
