@@ -79,6 +79,7 @@ export interface Employee {
   immediate_boss?: number | null
   immediate_boss_name?: string | null
   hire_date?: string | null
+  retirement_date?: string | null
   seniority?: Seniority | null
   training?: string
   current_salary?: string | null
@@ -130,6 +131,8 @@ export interface EmployeeListParams {
   hire_date_to?: string
   contract_end_date_from?: string
   contract_end_date_to?: string
+  retirement_date_from?: string
+  retirement_date_to?: string
   ordering?: string
 }
 

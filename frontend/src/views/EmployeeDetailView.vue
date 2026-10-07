@@ -93,6 +93,10 @@ function rowsOf(current: Employee, block: EmployeeBlock): EmployeeInfoRow[] {
       continue
     }
 
+    if (field.name === 'retirement_date' && current.status !== 'retired') {
+      continue
+    }
+
     rows.push(rowOf(current, field))
 
     if (field.name === 'birth_date') {

@@ -78,6 +78,11 @@ function selectableItems(field: EmployeeFieldSpec): (CatalogItem | CostCenter)[]
   return catalogFor(field).filter((item) => item.is_active || item.id === form.value[field.name])
 }
 
+// interface convenience only: the backend clears and validates the retirement date itself
+function isShown(field: EmployeeFieldSpec): boolean {
+  return field.name !== 'retirement_date' || form.value.status === 'retired'
+}
+
 function itemLabel(item: CatalogItem | CostCenter): string {
   return 'code' in item ? `${item.code} — ${item.name}` : item.name
 }
@@ -241,7 +246,7 @@ onMounted(load)
 
             <div class="row g-3 flex-grow-1 align-content-start">
               <div
-                v-for="field in block.fields"
+                v-for="field in block.fields.filter(isShown)"
                 :key="field.name"
                 :class="
                   field.kind === 'textarea' || field.kind === 'boss'
