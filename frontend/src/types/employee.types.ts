@@ -177,3 +177,9 @@ export interface OrgChartEmployee {
   immediate_boss: number | null
   immediate_boss_name: string | null
 }
+
+export interface MonthlyCut {
+  id: number
+  cut_date: string
+  updated_at: string
+}

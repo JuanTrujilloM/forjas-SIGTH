@@ -12,6 +12,7 @@ export interface EmployeeListFilters {
   hireDateTo: string
   contractEndDateFrom: string
   contractEndDateTo: string
+  cut: string
 }
 
 // the address bar is user-visible, so the keys are in Spanish like the routes
@@ -24,6 +25,7 @@ const QUERY_KEYS: Record<keyof EmployeeListFilters, string> = {
   hireDateTo: 'ingreso_hasta',
   contractEndDateFrom: 'vence_desde',
   contractEndDateTo: 'vence_hasta',
+  cut: 'corte',
 }
 
 const NUMERIC_FILTERS = new Set<keyof EmployeeListFilters>(['division', 'section'])
@@ -38,6 +40,7 @@ export function emptyFilters(): EmployeeListFilters {
     hireDateTo: '',
     contractEndDateFrom: '',
     contractEndDateTo: '',
+    cut: '',
   }
 }
 
