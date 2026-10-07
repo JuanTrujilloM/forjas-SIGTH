@@ -1,8 +1,7 @@
 # 0006. Fotos de empleados servidas solo por la API
 
 **Fecha:** registrada el 2026-09-29; la decisión se tomó durante el desarrollo (desde el 2026-08-25)
-**Estado:** Aceptada (ubicación en producción pendiente: pendiente 5 de la
-[documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes))
+**Estado:** Aceptada (la ubicación de las fotos en producción la define TI)
 
 ## Contexto
 

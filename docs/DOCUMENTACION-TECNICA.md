@@ -12,7 +12,7 @@
 | **Fecha de inicio** | 2026-04-06 (el repositorio empieza el 2026-08-25) |
 | **Fecha de entrega** | 2026-10-15 (prevista) |
 | **Estado del sistema** | En desarrollo: corre en entorno local; sin servidor de producción definido |
-| **Versión del documento** | 0.1 (borrador) |
+| **Versión del documento** | 0.3 (borrador) |
 
 Documento funcional para usuarios: `FB-INM-P03-TH-Informe-de-entrega`.
 
@@ -33,7 +33,7 @@ operación del sistema.
 9. [Despliegue y configuración](#9-despliegue-y-configuración)
 10. [Operación (runbook)](#10-operación-runbook)
 11. [Decisiones técnicas](#11-decisiones-técnicas)
-12. [Riesgos, deuda técnica y pendientes](#12-riesgos-deuda-técnica-y-pendientes)
+12. [Riesgos y deuda técnica](#12-riesgos-y-deuda-técnica)
 13. [Inventario de entrega](#13-inventario-de-entrega)
 14. [Glosario](#14-glosario)
 
@@ -67,7 +67,7 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
 - **Admin de Django** para que TI gestione cuentas, direcciones y secciones, y para que
   Talento Humano gestione el catálogo de cargos.
 
-**Aún no construido** (§12): la importación del Excel actual, la exportación de listados
+**Aún no construido**: la importación del Excel actual, la exportación de listados
 y los indicadores con gráficas. Las dependencias `openpyxl` y `chart.js` ya están
 previstas para eso.
 
@@ -156,7 +156,7 @@ flowchart LR
 | Base de datos | SQL Server 2022 (desarrollo: contenedor Docker, collation `Modern_Spanish_CI_AS`) | Datos de empleados, cuentas e historial | Externa |
 | Driver | ODBC Driver 18 for SQL Server · `mssql-django` 1.7.4 · `pyodbc` 5.3.0 | Conexión a SQL Server | — |
 | Frontend | Vue 3.5 · TypeScript 6 · Vite 8 · Pinia · Vue Router · Axios · Bootstrap 5.3 | Pantallas de negocio | `frontend/` |
-| Archivos | Carpeta local (`MEDIA_ROOT`) | Fotos de empleados, servidas solo por la API | Provisional (§12) |
+| Archivos | Carpeta local (`MEDIA_ROOT`) | Fotos de empleados, servidas solo por la API | Provisional: la ubicación en producción la define TI |
 
 Dependencias completas: [`backend/requirements.txt`](../backend/requirements.txt) y
 [`frontend/package.json`](../frontend/package.json). Cada una responde a una necesidad
@@ -423,7 +423,7 @@ de `develop` y vuelve a `develop`. Los commits siguen *conventional commits* en 
 | Entorno | Dónde | Estado |
 |---|---|---|
 | Desarrollo | PC del desarrollador: Django `:8000`, Vite `:5173`, SQL Server en Docker | Activo |
-| Producción | Servidor de TI | **No definido** (§12) |
+| Producción | Servidor de TI | **No definido** |
 
 ### 9.2 Variables de entorno
 
@@ -457,7 +457,7 @@ secretos**):
 El proceso lo define TI. Esto es lo que el sistema necesita, sea cual sea:
 
 1. **SQL Server** con una base `sigth` y un login `sigth_app` con `db_ddladmin` +
-   `db_datareader` + `db_datawriter`. Revisar la collation (§12).
+   `db_datareader` + `db_datawriter`. Revisar la collation.
 2. **Backend:**
    - Python 3.13 con `pip install -r backend/requirements.txt` (sin `flake8`);
    - driver ODBC 18 instalado;
@@ -544,23 +544,12 @@ producción, TI recoge esa salida con su servidor de aplicación. Los ingresos s
 
 ---
 
-## 12. Riesgos, deuda técnica y pendientes
+## 12. Riesgos y deuda técnica
 
-Los pendientes de negocio y de infraestructura se llevan en esta tabla, con numeración
-fija: al cerrar uno se borra su fila sin renumerar las demás, para que las citas desde
-otros documentos sigan apuntando a lo mismo.
-
-| # | Tipo | Descripción | Impacto | Recomendación |
-|---|---|---|---|---|
-| 1 | Riesgo | El repositorio está en la **cuenta personal de GitHub** de Juan Trujillo. | Alto | Transferirlo a una organización o cuenta de Forjas |
-| 2 | Pendiente | **Servidor de producción sin definir**: sistema operativo, versión de SQL Server, proceso de despliegue y collation. | Alto | TI lo define. Usar la lista de §9.3 |
-| 3 | Pendiente | **Quién administra el esquema**: migraciones de Django o scripts de TI. | Alto | Cerrarlo antes del primer despliegue: cambiarlo después, con datos cargados, exige migrar datos |
-| 4 | Pendiente | **Importación del Excel actual** no construida: sin ella no hay forma masiva de cargar los empleados reales. | Alto | Construir el servicio de importación (`openpyxl` ya está en las dependencias) |
-| 5 | Pendiente | **Dónde viven las fotos en producción** y cómo se respaldan. | Medio | TI define `MEDIA_ROOT` y su respaldo |
-| 7 | Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
-| 8 | Pendiente | Exportación de listados e indicadores con gráficas, sin construir. Los indicadores del Excel no están definidos. | Medio | Definirlos con Talento Humano |
-| 9 | Pendiente | Volumen real de empleados, direcciones y usuarios concurrentes, por confirmar con Talento Humano. | Bajo | Cerrarlo con TH |
-| 10 | Pendiente | Tiempo de retención del historial de auditoría. | Bajo | Seguridad de la Información |
+| Tipo | Descripción | Impacto | Recomendación |
+|---|---|---|---|
+| Riesgo | El repositorio está en la **cuenta personal de GitHub** de Juan Trujillo. | Alto | Transferirlo a una organización o cuenta de Forjas |
+| Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
 
 ---
 
@@ -608,3 +597,4 @@ otros documentos sigan apuntando a lo mismo.
 |---|---|---|---|
 | 0.1 | 2026-09-29 | Juan Trujillo | Borrador inicial a partir del código y las guías de `docs/` |
 | 0.2 | 2026-10-01 | Juan Trujillo | El documento queda completo por sí solo: reglas del modelo, convenciones y pendientes propios |
+| 0.3 | 2026-10-06 | Juan Trujillo | Los pendientes salen del documento; §12 queda con los riesgos y la deuda técnica |
