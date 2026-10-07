@@ -44,7 +44,7 @@ class EmployeeViewSet(
     filter_backends = [DjangoFilterBackend, EmployeeFieldSearchFilter, EmployeeFieldOrderingFilter]
     filterset_class = EmployeeFilterSet
     search_fields = ['full_name', 'id_number']
-    ordering_fields = ['full_name', 'id_number', 'hire_date', 'birth_date']
+    ordering_fields = ['full_name', 'id_number', 'hire_date', 'birth_date', 'contract_end_date']
     ordering = ['full_name', 'id']
 
     def get_serializer_class(self):
