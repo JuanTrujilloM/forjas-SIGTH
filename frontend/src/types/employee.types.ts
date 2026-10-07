@@ -71,7 +71,9 @@ export interface Employee {
   is_leader?: boolean | null
   section?: number | null
   section_name?: string | null
-  cost_center?: string
+  cost_center?: number | null
+  cost_center_code?: string | null
+  cost_center_name?: string | null
   area?: string
   additional_role?: string
   immediate_boss?: number | null
@@ -129,4 +131,11 @@ export interface EmployeeListParams {
   contract_end_date_from?: string
   contract_end_date_to?: string
   ordering?: string
+}
+
+export interface CostCenter {
+  id: number
+  code: string
+  name: string
+  is_active: boolean
 }
