@@ -1,5 +1,6 @@
 # external libraries imports
 from django.contrib import admin
+from django.db.models import Count
 from simple_history.admin import SimpleHistoryAdmin
 
 # internal application code imports
@@ -9,6 +10,7 @@ from employees.models import (
     CostCenter,
     Employee,
     EmployeeExportLog,
+    MonthlyCut,
     Position,
 )
 from users.access import EmployeeFieldPolicy
@@ -55,6 +57,26 @@ class CostCenterAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
 class ContractAlertDispatchAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
     list_display = ['sent_on', 'employee_count', 'recipients', 'created_at']
     readonly_fields = ['sent_on', 'employee_count', 'recipients', 'created_at']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+
+@admin.register(MonthlyCut)
+class MonthlyCutAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
+    list_display = ['cut_date', 'employee_count', 'taken_by', 'created_at', 'updated_at']
+    readonly_fields = ['cut_date', 'taken_by', 'created_at', 'updated_at']
+    list_select_related = ['taken_by']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(employee_count=Count('snapshots'))
+
+    @admin.display(description='Empleados', ordering='employee_count')
+    def employee_count(self, cut: MonthlyCut) -> int:
+        return cut.employee_count
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False

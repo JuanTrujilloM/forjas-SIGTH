@@ -7,6 +7,8 @@ from .EmployeeListSerializer import EmployeeListSerializer
 from .EmployeePhotoSerializer import EmployeePhotoSerializer
 from .EmployeePhotoUrlField import EmployeePhotoUrlField
 from .EmployeeSerializer import EmployeeSerializer
+from .EmployeeSnapshotSerializer import EmployeeSnapshotSerializer
+from .MonthlyCutSerializer import MonthlyCutSerializer
 from .OrgChartSerializer import OrgChartSerializer
 from .PositionSerializer import PositionSerializer
 
@@ -19,6 +21,8 @@ __all__ = [
     'EmployeePhotoSerializer',
     'EmployeePhotoUrlField',
     'EmployeeSerializer',
+    'EmployeeSnapshotSerializer',
+    'MonthlyCutSerializer',
     'OrgChartSerializer',
     'PositionSerializer',
 ]
