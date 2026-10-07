@@ -57,8 +57,10 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
 ### 1.2 Funcionalidades de esta fase
 
 - Ingreso con correo corporativo y contraseña (sesión por cookie).
-- **Listado de empleados** con búsqueda, filtros, orden y miniatura de la foto. Es la
-  pantalla de inicio.
+- **Listado de empleados** con búsqueda, filtros (incluidos rangos de fecha de ingreso y
+  de vencimiento del contrato), orden y miniatura de la foto. Los filtros quedan en la
+  dirección de la página, así que se conservan al volver de una ficha. Es la pantalla de
+  inicio.
 - **Ficha del empleado**, organizada por bloques de datos.
 - **Creación y edición** de empleados, solo para Talento Humano, incluidas la foto y las
   prórrogas de contrato.
@@ -226,7 +228,10 @@ El detalle, incluidas las trampas de CSRF en desarrollo, está en
    perfil: todos, su dirección o sus secciones.
 3. El serializer, con **`EmployeeFieldsMixin`**, le pide a **`EmployeeFieldPolicy`** las
    columnas visibles y descarta el resto. La clave no viene en la respuesta.
-4. Los filtros, la búsqueda y el orden solo aceptan columnas visibles.
+4. Los filtros, la búsqueda y el orden solo aceptan columnas visibles. Para no dibujar un
+   filtro que el backend va a ignorar, `GET /api/auth/me/` trae `readable_fields`: la
+   lista de columnas que el perfil ve. Es solo para la interfaz; quien decide sigue
+   siendo el backend.
 5. Un empleado fuera de alcance, pedido por `id`, responde **404**.
 
 ### 5.3 Edición por Talento Humano
@@ -291,8 +296,8 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/auth/csrf/` | Entrega la cookie CSRF | Cualquiera |
 | POST | `/api/auth/login/` | Abre la sesión | Cualquiera |
 | POST | `/api/auth/logout/` | Cierra la sesión | Autenticado |
-| GET | `/api/auth/me/` | Usuario actual, perfil y alcance | Autenticado |
-| GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros y orden | Autenticado, recortado por perfil |
+| GET | `/api/auth/me/` | Usuario actual, perfil, alcance y columnas visibles (`readable_fields`) | Autenticado |
+| GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
