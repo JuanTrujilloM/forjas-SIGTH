@@ -16,6 +16,10 @@ class EmployeeFilterSet(EmployeeFieldFilterSet):
     contract_end_date_to = django_filters.DateFilter(
         field_name='contract_end_date', lookup_expr='lte'
     )
+    retirement_date_from = django_filters.DateFilter(
+        field_name='retirement_date', lookup_expr='gte'
+    )
+    retirement_date_to = django_filters.DateFilter(field_name='retirement_date', lookup_expr='lte')
 
     class Meta:
         model = Employee

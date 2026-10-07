@@ -64,6 +64,7 @@ EMPLOYEE_FIELD_GROUPS: dict[EmployeeFieldGroup, frozenset[str]] = {
         'immediate_boss',
         'immediate_boss_name',
         'hire_date',
+        'retirement_date',
         'seniority',
         'training',
     }),

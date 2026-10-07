@@ -1,6 +1,7 @@
 # external libraries imports
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
@@ -119,6 +120,12 @@ class Employee(models.Model):
         max_length=30, choices=AdditionalRole.choices, verbose_name='Rol adicional'
     )
     hire_date = models.DateField(verbose_name='Fecha de ingreso')
+    retirement_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de retiro',
+        help_text='Obligatoria si el empleado está retirado; se borra al volver a Activo',
+    )
     training = models.TextField(
         blank=True, verbose_name='Formación', help_text='AROs y formaciones, en texto libre'
     )
@@ -227,6 +234,31 @@ class Employee(models.Model):
 
     def __str__(self):
         return self.full_name
+
+    def clean(self):
+        super().clean()
+        errors = self.retirement_errors(self.status, self.retirement_date, self.hire_date)
+
+        if errors:
+            raise ValidationError(errors)
+
+        if self.status == EmployeeStatus.ACTIVE:
+            self.retirement_date = None
+
+    @staticmethod
+    def retirement_errors(status, retirement_date, hire_date) -> dict[str, str]:
+        if status != EmployeeStatus.RETIRED:
+            return {}
+
+        if retirement_date is None:
+            return {'retirement_date': 'La fecha de retiro es obligatoria para un empleado retirado.'}
+
+        if hire_date is not None and retirement_date < hire_date:
+            return {
+                'retirement_date': 'La fecha de retiro no puede ser anterior a la fecha de ingreso.'
+            }
+
+        return {}
 
     @property
     def age(self) -> int | None:
