@@ -271,7 +271,7 @@ erDiagram
 | `Position` | employees | Cargo. Catálogo editable por TH desde el admin (31 cargados) | — |
 | `CostCenter` | employees | Centro de costos: código y nombre. Catálogo editable por TH desde el admin (21 códigos cargados; el nombre arranca igual al código) | — |
 | `Employee` | employees | Un modelo plano, espejo de la especificación de TH | Sí |
-| `ContractExtension` | employees | Prórroga de contrato (varias por empleado) | Sí |
+| `ContractExtension` | employees | Prórroga de contrato (varias por empleado). Guarda desde cuándo rige; registrarla mueve la fecha de vencimiento del empleado | Sí |
 
 Reglas del modelo de empleado:
 
@@ -282,6 +282,11 @@ Reglas del modelo de empleado:
 - La identificación es **única sin importar el tipo de documento**: quien pasa de T.I. a
   cédula con el mismo número conserva su registro.
 - Del cargo anterior se guarda solo el último, con sus fechas.
+- **Una prórroga mueve la fecha de vencimiento.** Se registra desde la ficha: el sistema
+  sugiere la nueva fecha (contrato fijo menor a un año: el mismo plazo hasta 3 prórrogas,
+  luego un año; fijo de un año: un año) y Talento Humano la confirma o la cambia. En el
+  admin las prórrogas son de solo lectura, para que no haya una prórroga sin vencimiento
+  nuevo.
 - Son **obligatorios** los datos que tiene todo empleado. Quedan opcionales solo los que
   no aplican a todos: foto, correo, título, dirección (Gerencia y Junta Directiva no
   tienen), jefe inmediato, cargo anterior, auxilio de transporte, fecha de vencimiento,
@@ -307,7 +312,8 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
-| POST | `/api/employees/{id}/extensions/` | Registrar una prórroga | Solo Talento Humano |
+| GET | `/api/employees/{id}/extensions/` | Nueva fecha de vencimiento sugerida por la regla legal | Solo Talento Humano |
+| POST | `/api/employees/{id}/extensions/` | Registrar una prórroga con su nueva fecha de vencimiento (`new_contract_end_date`): crea la prórroga, que rige desde el día siguiente al vencimiento anterior, y actualiza el vencimiento | Solo Talento Humano |
 | GET | `/api/employees/{id}/photo/` (`?size=thumb`) | Foto (o miniatura de 80×100) | Autenticado, si ve la foto |
 | PUT / DELETE | `/api/employees/{id}/photo/` | Subir / quitar la foto (JPG, PNG o WebP hasta 5 MB) | Solo Talento Humano |
 | GET | `/api/positions/` · `/api/cost-centers/` · `/api/divisions/` · `/api/sections/` | Catálogos | Autenticado |
