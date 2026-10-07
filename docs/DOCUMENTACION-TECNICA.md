@@ -67,7 +67,7 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
 - **Recorte de filas y columnas por perfil**, en el backend (§7).
 - **Historial de cambios**: quién cambió qué y cuándo.
 - **Admin de Django** para que TI gestione cuentas, direcciones y secciones, y para que
-  Talento Humano gestione el catálogo de cargos.
+  Talento Humano gestione los catálogos de cargos y de centros de costos.
 
 **Aún no construido**: la importación del Excel actual, la exportación de listados
 y los indicadores con gráficas. Las dependencias `openpyxl` y `chart.js` ya están
@@ -171,7 +171,7 @@ forjas-SIGTH/
 ├── backend/
 │   ├── config/        settings, urls raíz, wsgi/asgi
 │   ├── users/         cuentas, direcciones, secciones, perfiles y políticas de acceso (access/)
-│   └── employees/     empleados, cargos, prórrogas, fotos
+│   └── employees/     empleados, cargos, centros de costos, prórrogas, fotos
 ├── frontend/src/
 │   ├── app/           App.vue, main.ts, router.ts
 │   ├── views/         LoginView, EmployeeListView, EmployeeDetailView, EmployeeFormView
@@ -254,6 +254,7 @@ erDiagram
     DIVISION ||--o{ EMPLOYEE : ""
     SECTION ||--o{ EMPLOYEE : ""
     POSITION ||--o{ EMPLOYEE : "cargo actual / anterior"
+    COST_CENTER ||--o{ EMPLOYEE : "centro de costos"
     EMPLOYEE ||--o{ EMPLOYEE : "jefe inmediato"
     EMPLOYEE ||--o{ CONTRACT_EXTENSION : "prórrogas"
 ```
@@ -267,6 +268,7 @@ erDiagram
 | `User` | users | Cuenta. Se autentica por `email`. Tiene `profile`, `division` y `sections` | Sí (sin contraseña ni último ingreso) |
 | `UserSection` | users | Secciones a cargo de un Líder | Sí |
 | `Position` | employees | Cargo. Catálogo editable por TH desde el admin (31 cargados) | — |
+| `CostCenter` | employees | Centro de costos: código y nombre. Catálogo editable por TH desde el admin (21 códigos cargados; el nombre arranca igual al código) | — |
 | `Employee` | employees | Un modelo plano, espejo de la especificación de TH | Sí |
 | `ContractExtension` | employees | Prórroga de contrato (varias por empleado) | Sí |
 
@@ -304,7 +306,7 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | POST | `/api/employees/{id}/extensions/` | Registrar una prórroga | Solo Talento Humano |
 | GET | `/api/employees/{id}/photo/` (`?size=thumb`) | Foto (o miniatura de 80×100) | Autenticado, si ve la foto |
 | PUT / DELETE | `/api/employees/{id}/photo/` | Subir / quitar la foto (JPG, PNG o WebP hasta 5 MB) | Solo Talento Humano |
-| GET | `/api/positions/` · `/api/divisions/` · `/api/sections/` | Catálogos | Autenticado |
+| GET | `/api/positions/` · `/api/cost-centers/` · `/api/divisions/` · `/api/sections/` | Catálogos | Autenticado |
 | — | `/admin/` | Admin de Django | TH y TI (§7.2) |
 
 ### 6.3 Pantallas del frontend
@@ -344,7 +346,7 @@ niega el dato o el método es el backend.
 
 - **TI:** crea y desactiva cuentas, y asigna perfil, dirección o secciones. Ve a los
   empleados en solo lectura.
-- **Talento Humano** (con `is_staff`): crea y edita empleados y cargos.
+- **Talento Humano** (con `is_staff`): crea y edita empleados, cargos y centros de costos.
 - Nadie más entra a la parte de empleados del admin.
 
 ### 7.3 Datos personales
@@ -468,7 +470,7 @@ El proceso lo define TI. Esto es lo que el sistema necesita, sea cual sea:
    - driver ODBC 18 instalado;
    - `backend/.env` completo según §9.2, con `DEBUG=False`.
 3. **Migraciones:** `python manage.py migrate`. Cargan también las direcciones, las
-   secciones y los cargos iniciales, y crean la tabla de caché `sigth_cache`, donde vive
+   secciones, los cargos y los centros de costos iniciales, y crean la tabla de caché `sigth_cache`, donde vive
    el límite de intentos de ingreso.
 4. **Estáticos del admin:** `python manage.py collectstatic` (van a `backend/staticfiles/`).
 5. **Servidor de aplicación WSGI** apuntando a `config.wsgi.application`, detrás de un
@@ -498,6 +500,7 @@ la versión nueva traía migraciones, revertirlas con `python manage.py migrate 
 | Respaldo de `MEDIA_ROOT` | Igual que la base | TI | Copia de la carpeta de fotos |
 | Alta y baja de cuentas | Cuando alguien entra o sale | TI | §10.2 |
 | Completar el catálogo de cargos | Cuando aparece un cargo nuevo | Talento Humano | Admin → Cargos |
+| Poner o cambiar el nombre de un centro de costos | Al arrancar (los 21 vienen con el código como nombre) o cuando Contabilidad crea o renombra uno | Talento Humano | Admin → Centros de costos |
 
 ### 10.2 Administración de cuentas
 
