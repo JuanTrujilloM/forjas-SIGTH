@@ -7,6 +7,7 @@ from .EmployeeListSerializer import EmployeeListSerializer
 from .EmployeePhotoSerializer import EmployeePhotoSerializer
 from .EmployeePhotoUrlField import EmployeePhotoUrlField
 from .EmployeeSerializer import EmployeeSerializer
+from .OrgChartSerializer import OrgChartSerializer
 from .PositionSerializer import PositionSerializer
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     'EmployeePhotoSerializer',
     'EmployeePhotoUrlField',
     'EmployeeSerializer',
+    'OrgChartSerializer',
     'PositionSerializer',
 ]
