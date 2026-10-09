@@ -16,7 +16,6 @@ Chart.register(BarElement, CategoryScale, Legend, LinearScale, LineElement, Poin
 Chart.defaults.font.family = getComputedStyle(document.body).fontFamily
 Chart.defaults.color = '#52514e'
 
-// validated as an adjacent pair for color-vision deficiencies; text never wears these colors
 export const SERIES_COLORS = ['#2a78d6', '#eb6834']
 
 export const GRID_COLOR = 'rgba(0, 0, 0, 0.06)'

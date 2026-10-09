@@ -157,7 +157,6 @@ CORS_ALLOW_CREDENTIALS = True
 # the reports download a file, and the frontend reads its name from this header
 CORS_EXPOSE_HEADERS = ['Content-Disposition']
 
-# without an SMTP host the daily contract alert is printed to the console instead of sent
 EMAIL_HOST = config('EMAIL_HOST', default='')
 EMAIL_BACKEND = (
     'django.core.mail.backends.smtp.EmailBackend'

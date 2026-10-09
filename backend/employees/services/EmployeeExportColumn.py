@@ -7,6 +7,5 @@ from dataclasses import dataclass
 class EmployeeExportColumn:
     key: str
     label: str
-    # text, choice, boolean, date, money, integer, relation, seniority or extensions
     kind: str = 'text'
     source: str | None = None

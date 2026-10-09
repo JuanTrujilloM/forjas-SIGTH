@@ -11,13 +11,11 @@ from employees.enums import EmployeeStatus
 
 from .EmployeeRowService import EmployeeRowService
 
-# type hints only: importing the models at runtime would be circular
 if TYPE_CHECKING:
     from employees.models import MonthlyCut
 
 
 # main code
-# imported on use: employees.models imports this package, so a top-level import is circular
 def _models():
     from employees import models
 

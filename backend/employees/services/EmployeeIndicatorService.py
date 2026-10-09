@@ -21,7 +21,6 @@ APPRENTICE_CATEGORIES = {
     EmployeeCategory.PRODUCTION_APPRENTICE_AD,
 }
 
-# (from, up to but not including, label)
 AGE_RANGES = [(None, 18, 'Menor de 18'), (18, 26, '18 a 25'), (26, 36, '26 a 35'),
               (36, 46, '36 a 45'), (46, 56, '46 a 55'), (56, None, '56 o más')]
 
@@ -70,7 +69,6 @@ class EmployeeIndicatorService:
     def active(rows: list[dict]) -> list[dict]:
         return [row for row in rows if row['status'] == EmployeeStatus.ACTIVE]
 
-    # an indicator built on a column the profile cannot read would leak it in the aggregate
     @staticmethod
     def compute(
         readable: frozenset[str],
@@ -80,8 +78,7 @@ class EmployeeIndicatorService:
         compare: tuple[date, list[dict]] | None,
     ) -> list[dict]:
         context = {'on': on, 'history': history, 'compare': compare}
-
-        return [
+        indicators = [
             {
                 'key': indicator.key,
                 'title': indicator.title,
@@ -93,6 +90,8 @@ class EmployeeIndicatorService:
             and (indicator.key != 'variation' or compare is not None)
         ]
 
+        return indicators
+
 
 def _choice_label(choices, value) -> str:
     return dict(choices).get(value, value or 'Sin dato')
@@ -100,12 +99,13 @@ def _choice_label(choices, value) -> str:
 
 def _bar(counter: Counter, order: list[str] | None = None) -> dict:
     labels = order if order is not None else [label for label, _ in counter.most_common()]
-
-    return {
+    bar = {
         'labels': labels,
         'values': [counter.get(label, 0) for label in labels],
         'total': sum(counter.values()),
     }
+
+    return bar
 
 
 def _by_sex(rows: list[dict], label_of: Callable, order: list[str] | None = None) -> dict:
@@ -123,12 +123,13 @@ def _by_sex(rows: list[dict], label_of: Callable, order: list[str] | None = None
         table_rows.append({'label': label, 'values': [*values, sum(values)]})
 
     totals = [sum(row['values'][index] for row in table_rows) for index in range(len(SEXES) + 1)]
-
-    return {
+    crosstab = {
         'columns': [label for _, label in SEXES] + ['Total'],
         'rows': table_rows,
         'totals': totals,
     }
+
+    return crosstab
 
 
 def _bucket(value: int | None, ranges: list) -> str | None:
@@ -189,14 +190,15 @@ def _section_salary(rows: list[dict], context: dict) -> dict:
         [section, division, len(salaries), str(sum(salaries))]
         for (section, division), salaries in sorted(groups.items())
     ]
-
-    return {
+    table = {
         'columns': ['Sección', 'Dirección', 'Cantidad', 'Suma de salario'],
         'money_columns': [3],
         'rows': table_rows,
         'totals': ['Total', '', sum(row[2] for row in table_rows),
                    str(sum(Decimal(row[3]) for row in table_rows))],
     }
+
+    return table
 
 
 def _birthdays(rows: list[dict], context: dict) -> dict:
@@ -206,8 +208,7 @@ def _birthdays(rows: list[dict], context: dict) -> dict:
          if row.get('birth_date') and int(row['birth_date'][5:7]) == month),
         key=lambda row: (int(row['birth_date'][8:10]), row['full_name']),
     )
-
-    return {
+    birthdays = {
         'month': MONTHS[month - 1],
         'items': [
             {
@@ -220,6 +221,8 @@ def _birthdays(rows: list[dict], context: dict) -> dict:
         ],
     }
 
+    return birthdays
+
 
 def _evolution(rows: list[dict], context: dict) -> dict:
     points = [
@@ -231,11 +234,13 @@ def _evolution(rows: list[dict], context: dict) -> dict:
     for on, count in points:
         yearly[on.year] = count
 
-    return {
+    evolution = {
         'labels': [f'{MONTHS[on.month - 1][:3]} {on.year}' for on, _ in points],
         'values': [count for _, count in points],
         'years': [{'year': year, 'active': count} for year, count in sorted(yearly.items())],
     }
+
+    return evolution
 
 
 def _variation(rows: list[dict], context: dict) -> dict:
@@ -245,8 +250,7 @@ def _variation(rows: list[dict], context: dict) -> dict:
     previous = Counter(row['division_name'] or NO_DIVISION
                        for row in EmployeeIndicatorService.active(compare_rows))
     labels = sorted(set(current) | set(previous))
-
-    return {
+    variation = {
         'columns': ['Dirección', EmployeeIndicatorService.month_label(compare_on),
                     EmployeeIndicatorService.month_label(context['on']), 'Variación'],
         'rows': [[label, previous[label], current[label], current[label] - previous[label]]
@@ -254,6 +258,8 @@ def _variation(rows: list[dict], context: dict) -> dict:
         'totals': ['Total', sum(previous.values()), sum(current.values()),
                    sum(current.values()) - sum(previous.values())],
     }
+
+    return variation
 
 
 def _active_counter(rows: list[dict], label_of: Callable) -> Counter:

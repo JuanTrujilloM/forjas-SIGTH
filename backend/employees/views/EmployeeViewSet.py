@@ -121,7 +121,6 @@ class EmployeeViewSet(
 
         return response
 
-    # not "format": DRF reserves that query parameter to pick a renderer
     @action(detail=False, methods=['get'])
     def export(self, request: Request) -> HttpResponse:
         file_format = request.query_params.get('file_format', '')
@@ -178,7 +177,6 @@ class EmployeeViewSet(
 
         return Response(serializer.data)
 
-    # GET only serves the form that registers one, so it is as restricted as the POST
     @action(detail=True, methods=['get', 'post'], serializer_class=ContractExtensionRequestSerializer)
     def extensions(self, request: Request, pk: str | None = None) -> Response:
         employee = self.get_object()
