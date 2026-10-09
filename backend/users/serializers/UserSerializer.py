@@ -14,6 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
     section_names = serializers.SerializerMethodField()
     sees_every_employee = serializers.SerializerMethodField()
     can_edit_employees = serializers.SerializerMethodField()
+    can_view_contract_alerts = serializers.SerializerMethodField()
+    readable_fields = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -30,6 +32,8 @@ class UserSerializer(serializers.ModelSerializer):
             'section_names',
             'sees_every_employee',
             'can_edit_employees',
+            'can_view_contract_alerts',
+            'readable_fields',
         ]
         read_only_fields = fields
 
@@ -44,3 +48,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_can_edit_employees(self, user: User) -> bool:
         return EmployeeFieldPolicy.can_write(user)
+
+    def get_can_view_contract_alerts(self, user: User) -> bool:
+        return EmployeeFieldPolicy.can_view_contract_alerts(user)
+
+    def get_readable_fields(self, user: User) -> list[str]:
+        return sorted(EmployeeFieldPolicy.readable_fields(user))

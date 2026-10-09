@@ -14,6 +14,7 @@ export type EmployeeFieldKind =
   | 'division'
   | 'section'
   | 'position'
+  | 'costCenter'
   | 'boss'
   | 'computed'
 
@@ -94,11 +95,12 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
       { name: 'previous_position_end_date', label: 'Fin del cargo anterior', kind: 'date' },
       { name: 'is_leader', label: 'Es líder', kind: 'boolean', required: true },
       { name: 'section', label: 'Sección', kind: 'section', required: true },
-      { name: 'cost_center', label: 'Centro de costos', kind: 'choice', required: true },
+      { name: 'cost_center', label: 'Centro de costos', kind: 'costCenter', required: true },
       { name: 'area', label: 'Área', kind: 'choice', required: true },
       { name: 'additional_role', label: 'Rol adicional', kind: 'choice', required: true },
       { name: 'immediate_boss', label: 'Jefe inmediato', kind: 'boss' },
       { name: 'hire_date', label: 'Fecha de ingreso', kind: 'date', required: true },
+      { name: 'retirement_date', label: 'Fecha de retiro', kind: 'date' },
       { name: 'seniority', label: 'Antigüedad', kind: 'computed' },
       { name: 'training', label: 'Formación', kind: 'textarea' },
     ],

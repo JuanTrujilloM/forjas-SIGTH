@@ -35,8 +35,23 @@ class EmployeeFieldPolicy:
 
         return frozenset().union(*(EMPLOYEE_FIELD_GROUPS[group] for group in groups))
 
+    # for stored copies of an employee (monthly cuts), which no serializer field lists
+    @staticmethod
+    def trim(user: AbstractBaseUser | AnonymousUser | None, data: dict) -> dict:
+        readable = EmployeeFieldPolicy.readable_fields(user)
+
+        return {key: value for key, value in data.items() if key in readable}
+
     @staticmethod
     def can_write(user: AbstractBaseUser | AnonymousUser | None) -> bool:
+        return bool(
+            user is not None
+            and user.is_authenticated
+            and user.profile == AccessProfile.TALENT_MANAGEMENT
+        )
+
+    @staticmethod
+    def can_view_contract_alerts(user: AbstractBaseUser | AnonymousUser | None) -> bool:
         return bool(
             user is not None
             and user.is_authenticated

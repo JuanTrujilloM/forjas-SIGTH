@@ -1,9 +1,8 @@
 # SQL Server local en macOS (Apple Silicon)
 
 Cómo se montó el SQL Server de desarrollo en un Mac con chip Apple, y los comandos
-del día a día. La base de producción todavía no está definida (pendiente 2 de la
-[documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes)): lo de acá replica lo que se espera
-encontrar allá, no lo confirmado.
+del día a día. La base de producción todavía no está definida (la define TI): lo de
+acá replica lo que se espera encontrar allá, no lo confirmado.
 
 ---
 
@@ -240,13 +239,12 @@ visibles en la lista de procesos. Conviene cargarlas en una variable con
 
 ---
 
-## 6. Pendientes que afectan a este documento
+## 6. Qué puede ser distinto en producción
 
-| # | Qué falta | Impacto si difiere de lo de acá |
-|---|---|---|
-| 1 | Collation real de la instancia de producción | Ordenamiento y comparación de `ñ` y tildes. Búsquedas de apellidos que se comportan distinto |
-| 2 | Versión real de SQL Server y sistema operativo del servidor | Se eligió 2022 por ser la más extendida on-premise; si TI tiene 2019, hay que verificarlo |
+| Dato | Impacto si difiere de lo de acá |
+|---|---|
+| Collation de la instancia de producción | Ordenamiento y comparación de `ñ` y tildes. Búsquedas de apellidos que se comportan distinto |
+| Versión de SQL Server y sistema operativo del servidor | Se eligió 2022 por ser la más extendida on-premise; si TI tiene 2019, hay que verificarlo |
 
-Ambos son parte del pendiente 2 de la documentación técnica y se cierran con
-Infraestructura / TI. Al cerrarlos, actualizar la tabla de §2 y
-eliminar la fila correspondiente.
+Los dos los define TI. Cuando se conozcan, se actualiza la tabla de §2 y se quita la
+fila correspondiente.

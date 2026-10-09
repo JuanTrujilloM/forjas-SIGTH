@@ -22,6 +22,14 @@ export interface ContractExtension {
   extension_date: string
 }
 
+export interface RegisteredContractExtension extends ContractExtension {
+  contract_end_date: string
+}
+
+export interface ContractExtensionSuggestion {
+  suggested_end_date: string | null
+}
+
 export interface EmployeeListItem {
   id: number
   status: string
@@ -71,12 +79,15 @@ export interface Employee {
   is_leader?: boolean | null
   section?: number | null
   section_name?: string | null
-  cost_center?: string
+  cost_center?: number | null
+  cost_center_code?: string | null
+  cost_center_name?: string | null
   area?: string
   additional_role?: string
   immediate_boss?: number | null
   immediate_boss_name?: string | null
   hire_date?: string | null
+  retirement_date?: string | null
   seniority?: Seniority | null
   training?: string
   current_salary?: string | null
@@ -124,4 +135,51 @@ export interface EmployeeListParams {
   status?: string
   division?: number
   section?: number
+  hire_date_from?: string
+  hire_date_to?: string
+  contract_end_date_from?: string
+  contract_end_date_to?: string
+  retirement_date_from?: string
+  retirement_date_to?: string
+  ordering?: string
+}
+
+export interface CostCenter {
+  id: number
+  code: string
+  name: string
+  is_active: boolean
+}
+
+export interface ContractAlert {
+  id: number
+  full_name: string
+  id_type: string
+  id_number: number
+  division_name: string | null
+  section_name: string | null
+  position_name: string | null
+  contract_type: string
+  contract_end_date: string
+  days_until_contract_end: number
+  extension_count: number
+}
+
+export interface OrgChartEmployee {
+  id: number
+  full_name: string
+  photo_thumbnail?: string | null
+  division: number | null
+  division_name: string | null
+  section: number | null
+  section_name: string | null
+  position_name: string | null
+  immediate_boss: number | null
+  immediate_boss_name: string | null
+}
+
+export interface MonthlyCut {
+  id: number
+  cut_date: string
+  updated_at: string
 }

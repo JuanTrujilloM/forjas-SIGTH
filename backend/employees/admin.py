@@ -1,9 +1,18 @@
 # external libraries imports
 from django.contrib import admin
+from django.db.models import Count
 from simple_history.admin import SimpleHistoryAdmin
 
 # internal application code imports
-from employees.models import ContractExtension, Employee, Position
+from employees.models import (
+    ContractAlertDispatch,
+    ContractExtension,
+    CostCenter,
+    Employee,
+    EmployeeExportLog,
+    MonthlyCut,
+    Position,
+)
 from users.access import EmployeeFieldPolicy
 
 
@@ -36,10 +45,72 @@ class PositionAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
     ordering = ['name']
 
 
+@admin.register(CostCenter)
+class CostCenterAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
+    list_display = ['code', 'name', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['code', 'name']
+    ordering = ['code']
+
+
+@admin.register(ContractAlertDispatch)
+class ContractAlertDispatchAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
+    list_display = ['sent_on', 'employee_count', 'recipients', 'created_at']
+    readonly_fields = ['sent_on', 'employee_count', 'recipients', 'created_at']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+
+@admin.register(MonthlyCut)
+class MonthlyCutAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
+    list_display = ['cut_date', 'employee_count', 'taken_by', 'created_at', 'updated_at']
+    readonly_fields = ['cut_date', 'taken_by', 'created_at', 'updated_at']
+    list_select_related = ['taken_by']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(employee_count=Count('snapshots'))
+
+    @admin.display(description='Empleados', ordering='employee_count')
+    def employee_count(self, cut: MonthlyCut) -> int:
+        return cut.employee_count
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+
+@admin.register(EmployeeExportLog)
+class EmployeeExportLogAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
+    list_display = ['created_at', 'user', 'title', 'file_format', 'row_count']
+    list_filter = ['file_format']
+    search_fields = ['user__email', 'title']
+    readonly_fields = ['created_at', 'user', 'title', 'file_format', 'row_count', 'filters', 'fields']
+    list_select_related = ['user']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
+
+
 class ContractExtensionInline(EmployeePolicyAdminMixin, admin.TabularInline):
     model = ContractExtension
     extra = 0
     fields = ['extension_date']
+    readonly_fields = ['extension_date']
+
+    def has_add_permission(self, request, obj=None) -> bool:
+        return False
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return False
 
 
 @admin.register(Employee)
@@ -58,7 +129,7 @@ class EmployeeAdmin(EmployeePolicyAdminMixin, SimpleHistoryAdmin):
             'collective_agreement', 'position', 'position_start_date', 'previous_position',
             'previous_position_start_date', 'previous_position_end_date', 'is_leader',
             'section', 'cost_center', 'area', 'additional_role', 'immediate_boss', 'hire_date',
-            'seniority', 'training',
+            'retirement_date', 'seniority', 'training',
         )}),
         ('Salario y contrato', {'fields': (
             'current_salary', 'salary_type', 'hourly_rate', 'transport_allowance',

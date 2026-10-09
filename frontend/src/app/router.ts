@@ -1,10 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { useSessionStore } from '@/stores/session'
+import AnalyticsView from '@/views/AnalyticsView.vue'
+import ContractAlertsView from '@/views/ContractAlertsView.vue'
 import EmployeeDetailView from '@/views/EmployeeDetailView.vue'
 import EmployeeFormView from '@/views/EmployeeFormView.vue'
 import EmployeeListView from '@/views/EmployeeListView.vue'
 import LoginView from '@/views/LoginView.vue'
+import OrgChartView from '@/views/OrgChartView.vue'
+import OrgStructureView from '@/views/OrgStructureView.vue'
+import ReportsView from '@/views/ReportsView.vue'
 
 // main code
 const routes = [
@@ -14,6 +19,18 @@ const routes = [
     path: '/empleados',
     name: 'employees',
     component: EmployeeListView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/empleados/organigrama',
+    name: 'org-chart',
+    component: OrgChartView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/empleados/estructura',
+    name: 'org-structure',
+    component: OrgStructureView,
     meta: { requiresAuth: true },
   },
   {
@@ -33,6 +50,24 @@ const routes = [
     name: 'employee-edit',
     component: EmployeeFormView,
     meta: { requiresAuth: true, requiresEditor: true },
+  },
+  {
+    path: '/reportes',
+    name: 'reports',
+    component: ReportsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/analitica',
+    name: 'analytics',
+    component: AnalyticsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/vencimientos',
+    name: 'contract-alerts',
+    component: ContractAlertsView,
+    meta: { requiresAuth: true, requiresContractAlerts: true },
   },
 ]
 
@@ -59,6 +94,10 @@ router.beforeEach(async (to) => {
 
   // interface convenience only: the backend refuses the write anyway
   if (to.meta.requiresEditor && !session.user?.can_edit_employees) {
+    return { name: 'employees' }
+  }
+
+  if (to.meta.requiresContractAlerts && !session.user?.can_view_contract_alerts) {
     return { name: 'employees' }
   }
 

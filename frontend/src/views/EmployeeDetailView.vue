@@ -7,7 +7,9 @@ import EmployeeInfoCard from '@/components/EmployeeInfoCard.vue'
 import EmployeePhoto from '@/components/EmployeePhoto.vue'
 import EmployeeService from '@/services/EmployeeService'
 import {
+  CONTRACT_ALERT_DAYS,
   daysUntil,
+  describeContractEnd,
   formatBoolean,
   formatChoice,
   formatDate,
@@ -34,8 +36,6 @@ const WIDE_BLOCKS = new Set<EmployeeBlockId>([
   'compensation_and_contract',
 ])
 
-const CONTRACT_WARNING_DAYS = 60
-
 const RECENT_EXTENSIONS = 6
 
 const route = useRoute()
@@ -50,7 +50,8 @@ const errorMessage = ref<string | null>(null)
 
 const photoFailed = route.query.aviso === 'foto'
 
-const extensionDate = ref('')
+const newContractEndDate = ref('')
+const isSuggestedDate = ref(false)
 const isAddingExtension = ref(false)
 const extensionError = ref<string | null>(null)
 const showsAllExtensions = ref(false)
@@ -93,6 +94,10 @@ function rowsOf(current: Employee, block: EmployeeBlock): EmployeeInfoRow[] {
       continue
     }
 
+    if (field.name === 'retirement_date' && current.status !== 'retired') {
+      continue
+    }
+
     rows.push(rowOf(current, field))
 
     if (field.name === 'birth_date') {
@@ -101,6 +106,10 @@ function rowsOf(current: Employee, block: EmployeeBlock): EmployeeInfoRow[] {
 
     if (field.name === 'contract_end_date') {
       rows.push(plainRow('Vencimiento mes/año', formatMonthAndYear(current.contract_end_date)))
+    }
+
+    if (field.name === 'cost_center' && 'cost_center_name' in current) {
+      rows.push(plainRow('Nombre centro de costos', current.cost_center_name ?? '—'))
     }
   }
 
@@ -136,15 +145,11 @@ function contractWarning(current: Employee): Pick<EmployeeInfoRow, 'hint' | 'ton
     return {}
   }
 
-  if (days < 0) {
-    return { hint: `Venció hace ${-days} días`, tone: 'danger' }
+  if (days > CONTRACT_ALERT_DAYS) {
+    return {}
   }
 
-  if (days <= CONTRACT_WARNING_DAYS) {
-    return { hint: `Vence en ${days} días`, tone: 'warning' }
-  }
-
-  return {}
+  return { hint: describeContractEnd(days), tone: days < 0 ? 'danger' : 'warning' }
 }
 
 function formatField(current: Employee, field: EmployeeFieldSpec): string {
@@ -165,6 +170,8 @@ function formatField(current: Employee, field: EmployeeFieldSpec): string {
       return (
         (field.name === 'position' ? current.position_name : current.previous_position_name) ?? '—'
       )
+    case 'costCenter':
+      return current.cost_center_code ?? '—'
     case 'boss':
       return current.immediate_boss_name ?? '—'
     case 'computed':
@@ -202,11 +209,46 @@ async function loadEmployee(): Promise<void> {
   } finally {
     isLoading.value = false
   }
+
+  loadExtensionSuggestion()
+}
+
+const canAddExtension = computed<boolean>(
+  () => canEdit.value && Boolean(employee.value?.contract_end_date),
+)
+
+// the extension starts the day after the current contract end date
+const extensionStart = computed<string | null>(() => {
+  const end = employee.value?.contract_end_date
+  if (!end) {
+    return null
+  }
+
+  const [year, month, day] = end.split('-').map(Number)
+  const next = new Date(year ?? 0, (month ?? 1) - 1, (day ?? 1) + 1)
+  const pad = (value: number) => String(value).padStart(2, '0')
+
+  return `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`
+})
+
+async function loadExtensionSuggestion(): Promise<void> {
+  if (!canAddExtension.value) {
+    return
+  }
+
+  try {
+    const { suggested_end_date } = await EmployeeService.getExtensionSuggestion(employeeId)
+    newContractEndDate.value = suggested_end_date ?? ''
+    isSuggestedDate.value = suggested_end_date !== null
+  } catch {
+    newContractEndDate.value = ''
+    isSuggestedDate.value = false
+  }
 }
 
 async function addExtension(): Promise<void> {
-  if (!extensionDate.value) {
-    extensionError.value = 'Elige la fecha de la prórroga.'
+  if (!newContractEndDate.value) {
+    extensionError.value = 'Elige la nueva fecha de vencimiento.'
     return
   }
 
@@ -214,11 +256,22 @@ async function addExtension(): Promise<void> {
   extensionError.value = null
 
   try {
-    const extension = await EmployeeService.addExtension(employeeId, extensionDate.value)
-    employee.value?.extensions?.push(extension)
-    extensionDate.value = ''
+    const registered = await EmployeeService.addExtension(employeeId, newContractEndDate.value)
+
+    if (employee.value) {
+      employee.value.extensions?.push({
+        id: registered.id,
+        extension_date: registered.extension_date,
+      })
+      employee.value.contract_end_date = registered.contract_end_date
+    }
+
+    await loadExtensionSuggestion()
   } catch (error) {
-    extensionError.value = BaseService.getApiErrorMessage(error, 'No se pudo agregar la prórroga.')
+    extensionError.value = BaseService.getApiErrorMessage(
+      error,
+      'No se pudo registrar la prórroga.',
+    )
   } finally {
     isAddingExtension.value = false
   }
@@ -316,22 +369,30 @@ onMounted(loadEmployee)
                   }}
                 </button>
 
+                <p v-if="canEdit && !canAddExtension" class="small text-secondary mt-3 mb-0">
+                  Para registrar una prórroga, primero pon la fecha de vencimiento del contrato en
+                  el formulario del empleado.
+                </p>
+
                 <form
-                  v-if="canEdit"
+                  v-else-if="canAddExtension"
                   class="d-flex flex-wrap gap-2 align-items-end mt-3"
                   novalidate
                   @submit.prevent="addExtension"
                 >
                   <div>
-                    <label class="form-label small mb-1" for="extension-date">
-                      Nueva prórroga
+                    <label class="form-label small mb-1" for="new-contract-end-date">
+                      Nueva fecha de vencimiento
                     </label>
                     <input
-                      id="extension-date"
-                      v-model="extensionDate"
+                      id="new-contract-end-date"
+                      v-model="newContractEndDate"
                       class="form-control form-control-sm"
                       type="date"
+                      :min="extensionStart ?? undefined"
                       :disabled="isAddingExtension"
+                      aria-describedby="new-contract-end-date-hint"
+                      @input="isSuggestedDate = false"
                     />
                   </div>
 
@@ -340,8 +401,15 @@ onMounted(loadEmployee)
                     type="submit"
                     :disabled="isAddingExtension"
                   >
-                    {{ isAddingExtension ? 'Agregando…' : 'Agregar' }}
+                    {{ isAddingExtension ? 'Registrando…' : 'Registrar prórroga' }}
                   </button>
+
+                  <div id="new-contract-end-date-hint" class="form-text w-100 mt-0">
+                    Rige desde el {{ formatDate(extensionStart) }}.
+                    <template v-if="isSuggestedDate">
+                      Fecha sugerida por la regla de prórroga del contrato; puedes cambiarla.
+                    </template>
+                  </div>
 
                   <div v-if="extensionError" class="alert alert-danger py-1 px-2 mb-0 small w-100">
                     {{ extensionError }}

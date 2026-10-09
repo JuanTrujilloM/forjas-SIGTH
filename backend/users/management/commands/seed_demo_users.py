@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 # internal application code imports
+from employees.models import EmployeeExportLog, MonthlyCut
 from users.enums import AccessProfile
 from users.models import Division, Section, User, UserSection
 
@@ -88,6 +89,9 @@ class Command(BaseCommand):
     def _remove(self, existing) -> None:
         ids = list(existing.values_list('id', flat=True))
 
+        # what the demo accounts left behind would block their deletion
+        EmployeeExportLog.objects.filter(user_id__in=ids).delete()
+        MonthlyCut.objects.filter(taken_by_id__in=ids).update(taken_by=None)
         UserSection.objects.filter(user_id__in=ids).delete()
         existing.delete()
         # after the deletes, which write their own "deleted" history rows

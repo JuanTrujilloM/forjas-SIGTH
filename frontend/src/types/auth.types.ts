@@ -14,6 +14,8 @@ export interface AuthenticatedUser {
   section_names: string[]
   sees_every_employee: boolean
   can_edit_employees: boolean
+  can_view_contract_alerts: boolean
+  readable_fields: string[]
 }
 
 export interface LoginCredentials {

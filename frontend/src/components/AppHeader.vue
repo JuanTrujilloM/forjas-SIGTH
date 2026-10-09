@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import forjasLogo from '@/assets/images/forjas-logo.svg'
+import EmployeeService from '@/services/EmployeeService'
 import BaseService from '@/shared/services/BaseService'
 import { useSessionStore } from '@/stores/session'
 
+const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 
 const isLoggingOut = ref(false)
 const errorMessage = ref<string | null>(null)
+const contractAlertCount = ref<number | null>(null)
+const isMenuOpen = ref(false)
 
 const scopeDescription = computed<string>(() => {
   const user = session.user
@@ -32,6 +36,30 @@ const scopeDescription = computed<string>(() => {
     : 'Tu cuenta no tiene secciones a cargo asignadas.'
 })
 
+// a failed count only hides the badge; the alerts page shows its own error
+async function loadContractAlertCount(): Promise<void> {
+  if (!session.user?.can_view_contract_alerts) {
+    return
+  }
+
+  try {
+    contractAlertCount.value = (await EmployeeService.getContractAlerts()).length
+  } catch {
+    contractAlertCount.value = null
+  }
+}
+
+onMounted(loadContractAlertCount)
+
+const navItems = computed(() => [
+  { label: 'Directorio', path: '/empleados', badge: null },
+  { label: 'Reportes', path: '/reportes', badge: null },
+  { label: 'Analítica', path: '/analitica', badge: null },
+  ...(session.user?.can_view_contract_alerts
+    ? [{ label: 'Vencimientos', path: '/vencimientos', badge: contractAlertCount.value }]
+    : []),
+])
+
 async function logout(): Promise<void> {
   isLoggingOut.value = true
   errorMessage.value = null
@@ -51,20 +79,51 @@ async function logout(): Promise<void> {
   <div class="sticky-top">
     <!-- dark on purpose: the logo is white, drawn for the login's photo background -->
     <header class="bg-primary" data-bs-theme="dark">
-      <nav class="navbar navbar-expand container">
+      <nav class="navbar navbar-expand-lg container">
         <RouterLink class="navbar-brand" :to="{ name: 'employees' }">
           <img :src="forjasLogo" alt="Forjas Bolívar" height="28" />
         </RouterLink>
 
-        <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <RouterLink class="nav-link active" :to="{ name: 'employees' }">Empleados</RouterLink>
-          </li>
-        </ul>
-
-        <button class="btn btn-outline-light btn-sm" :disabled="isLoggingOut" @click="logout">
-          {{ isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión' }}
+        <!-- toggled by Vue: Bootstrap's own JavaScript is not loaded -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          aria-controls="main-menu"
+          :aria-expanded="isMenuOpen"
+          aria-label="Abrir el menú"
+          @click="isMenuOpen = !isMenuOpen"
+        >
+          <span class="navbar-toggler-icon"></span>
         </button>
+
+        <div id="main-menu" class="collapse navbar-collapse" :class="{ show: isMenuOpen }">
+          <ul class="navbar-nav me-auto">
+            <li v-for="item in navItems" :key="item.label" class="nav-item">
+              <RouterLink
+                class="nav-link"
+                :class="{ active: route.path.startsWith(item.path) }"
+                :to="item.path"
+              >
+                {{ item.label }}
+                <span
+                  v-if="item.badge"
+                  class="badge rounded-pill text-bg-warning ms-1"
+                  :aria-label="`${item.badge} contratos en alerta`"
+                >
+                  {{ item.badge }}
+                </span>
+              </RouterLink>
+            </li>
+          </ul>
+
+          <button
+            class="btn btn-outline-light btn-sm my-2 my-lg-0"
+            :disabled="isLoggingOut"
+            @click="logout"
+          >
+            {{ isLoggingOut ? 'Cerrando sesión…' : 'Cerrar sesión' }}
+          </button>
+        </div>
       </nav>
     </header>
 

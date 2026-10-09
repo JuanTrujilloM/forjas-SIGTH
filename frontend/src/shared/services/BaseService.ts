@@ -14,6 +14,33 @@ export default class BaseService {
     })
   }
 
+  public static async downloadFile(url: string, params: object): Promise<void> {
+    try {
+      const response = await BaseService.axiosInstance.get<Blob>(url, {
+        params,
+        responseType: 'blob',
+      })
+      const disposition = String(response.headers['content-disposition'] ?? '')
+      const fileName = /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'descarga'
+      const link = document.createElement('a')
+
+      link.href = URL.createObjectURL(response.data)
+      link.download = fileName
+      link.click()
+      URL.revokeObjectURL(link.href)
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+        try {
+          error.response.data = JSON.parse(await error.response.data.text())
+        } catch {
+          error.response.data = {}
+        }
+      }
+
+      throw error
+    }
+  }
+
   public static getApiErrorMessage(
     error: unknown,
     fallbackMessage = 'Ocurrió un error inesperado al contactar la API.',

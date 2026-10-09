@@ -1,13 +1,17 @@
 import BaseService from '@/shared/services/BaseService'
 import type {
-  ContractExtension,
+  ContractAlert,
+  ContractExtensionSuggestion,
+  CostCenter,
   Employee,
   EmployeeChoices,
   EmployeeListItem,
   EmployeeListParams,
   EmployeePayload,
   EmployeePhotoResponse,
+  OrgChartEmployee,
   Page,
+  RegisteredContractExtension,
 } from '@/types/employee.types'
 import type { CatalogItem } from '@/types/organization.types'
 
@@ -15,6 +19,8 @@ export default class EmployeeService extends BaseService {
   private static API_URL: string = 'employees/'
 
   private static POSITIONS_URL: string = 'positions/'
+
+  private static COST_CENTERS_URL: string = 'cost-centers/'
 
   public static list(params: EmployeeListParams = {}): Promise<Page<EmployeeListItem>> {
     return super.axiosInstance
@@ -40,10 +46,31 @@ export default class EmployeeService extends BaseService {
       .then((response) => response.data)
   }
 
-  public static addExtension(id: number, extensionDate: string): Promise<ContractExtension> {
+  public static getOrgChart(): Promise<OrgChartEmployee[]> {
     return super.axiosInstance
-      .post<ContractExtension>(`${EmployeeService.API_URL}${id}/extensions/`, {
-        extension_date: extensionDate,
+      .get<OrgChartEmployee[]>(`${EmployeeService.API_URL}org-chart/`)
+      .then((response) => response.data)
+  }
+
+  public static getContractAlerts(): Promise<ContractAlert[]> {
+    return super.axiosInstance
+      .get<ContractAlert[]>(`${EmployeeService.API_URL}contract-alerts/`)
+      .then((response) => response.data)
+  }
+
+  public static getExtensionSuggestion(id: number): Promise<ContractExtensionSuggestion> {
+    return super.axiosInstance
+      .get<ContractExtensionSuggestion>(`${EmployeeService.API_URL}${id}/extensions/`)
+      .then((response) => response.data)
+  }
+
+  public static addExtension(
+    id: number,
+    newContractEndDate: string,
+  ): Promise<RegisteredContractExtension> {
+    return super.axiosInstance
+      .post<RegisteredContractExtension>(`${EmployeeService.API_URL}${id}/extensions/`, {
+        new_contract_end_date: newContractEndDate,
       })
       .then((response) => response.data)
   }
@@ -72,6 +99,12 @@ export default class EmployeeService extends BaseService {
   public static getPositions(): Promise<CatalogItem[]> {
     return super.axiosInstance
       .get<CatalogItem[]>(EmployeeService.POSITIONS_URL)
+      .then((response) => response.data)
+  }
+
+  public static getCostCenters(): Promise<CostCenter[]> {
+    return super.axiosInstance
+      .get<CostCenter[]>(EmployeeService.COST_CENTERS_URL)
       .then((response) => response.data)
   }
 }

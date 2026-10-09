@@ -12,7 +12,7 @@
 | **Fecha de inicio** | 2026-04-06 (el repositorio empieza el 2026-08-25) |
 | **Fecha de entrega** | 2026-10-15 (prevista) |
 | **Estado del sistema** | En desarrollo: corre en entorno local; sin servidor de producción definido |
-| **Versión del documento** | 0.1 (borrador) |
+| **Versión del documento** | 0.3 (borrador) |
 
 Documento funcional para usuarios: `FB-INM-P03-TH-Informe-de-entrega`.
 
@@ -33,7 +33,7 @@ operación del sistema.
 9. [Despliegue y configuración](#9-despliegue-y-configuración)
 10. [Operación (runbook)](#10-operación-runbook)
 11. [Decisiones técnicas](#11-decisiones-técnicas)
-12. [Riesgos, deuda técnica y pendientes](#12-riesgos-deuda-técnica-y-pendientes)
+12. [Riesgos y deuda técnica](#12-riesgos-y-deuda-técnica)
 13. [Inventario de entrega](#13-inventario-de-entrega)
 14. [Glosario](#14-glosario)
 
@@ -57,19 +57,34 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
 ### 1.2 Funcionalidades de esta fase
 
 - Ingreso con correo corporativo y contraseña (sesión por cookie).
-- **Listado de empleados** con búsqueda, filtros, orden y miniatura de la foto. Es la
-  pantalla de inicio.
+- **Listado de empleados** con búsqueda, filtros (incluidos rangos de fecha de ingreso y
+  de vencimiento del contrato), orden y miniatura de la foto. Los filtros quedan en la
+  dirección de la página, así que se conservan al volver de una ficha. Es la pantalla de
+  inicio. Un selector de mes muestra a los empleados tal como quedaron en cada **corte
+  mensual**.
+- **Estructura organizacional**: organigrama por jefe inmediato y vista agrupada por
+  dirección y sección, sobre el alcance de cada perfil.
 - **Ficha del empleado**, organizada por bloques de datos.
 - **Creación y edición** de empleados, solo para Talento Humano, incluidas la foto y las
   prórrogas de contrato.
 - **Recorte de filas y columnas por perfil**, en el backend (§7).
 - **Historial de cambios**: quién cambió qué y cuándo.
 - **Admin de Django** para que TI gestione cuentas, direcciones y secciones, y para que
-  Talento Humano gestione el catálogo de cargos.
+  Talento Humano gestione los catálogos de cargos y de centros de costos.
 
-**Aún no construido** (§12): la importación del Excel actual, la exportación de listados
-y los indicadores con gráficas. Las dependencias `openpyxl` y `chart.js` ya están
-previstas para eso.
+- **Reportes y consultas** (`/reportes`): filtros combinados, elección y orden de campos,
+  vista previa y descarga en Excel, CSV o PDF, con reportes listos (ingresos y retiros
+  del mes, por dirección, por líder y por sección). Cada descarga queda registrada.
+
+- **Analítica de Talento Humano** (`/analitica`): resumen (activos, ingresos, retiros y
+  variación frente a otro mes), evolución mensual y anual de los activos, distribución
+  por categoría, dirección, sección y cargo, cruces por sexo (dirección, vinculación con
+  los aprendices aparte, tipo de contratación y edad), antigüedad, pacto colectivo,
+  personal y salario por sección, y cumpleaños del mes. Se filtra por periodo, dirección,
+  sección, área, sexo, vinculación y categoría; cada gráfica se ve también como tabla y
+  se descarga como imagen, y el conjunto se descarga en Excel.
+
+La carga inicial de los datos reales la hace TI.
 
 ### 1.3 Objetivos de calidad
 
@@ -156,7 +171,7 @@ flowchart LR
 | Base de datos | SQL Server 2022 (desarrollo: contenedor Docker, collation `Modern_Spanish_CI_AS`) | Datos de empleados, cuentas e historial | Externa |
 | Driver | ODBC Driver 18 for SQL Server · `mssql-django` 1.7.4 · `pyodbc` 5.3.0 | Conexión a SQL Server | — |
 | Frontend | Vue 3.5 · TypeScript 6 · Vite 8 · Pinia · Vue Router · Axios · Bootstrap 5.3 | Pantallas de negocio | `frontend/` |
-| Archivos | Carpeta local (`MEDIA_ROOT`) | Fotos de empleados, servidas solo por la API | Provisional (§12) |
+| Archivos | Carpeta local (`MEDIA_ROOT`) | Fotos de empleados, servidas solo por la API | Provisional: la ubicación en producción la define TI |
 
 Dependencias completas: [`backend/requirements.txt`](../backend/requirements.txt) y
 [`frontend/package.json`](../frontend/package.json). Cada una responde a una necesidad
@@ -169,7 +184,7 @@ forjas-SIGTH/
 ├── backend/
 │   ├── config/        settings, urls raíz, wsgi/asgi
 │   ├── users/         cuentas, direcciones, secciones, perfiles y políticas de acceso (access/)
-│   └── employees/     empleados, cargos, prórrogas, fotos
+│   └── employees/     empleados, cargos, centros de costos, prórrogas, fotos
 ├── frontend/src/
 │   ├── app/           App.vue, main.ts, router.ts
 │   ├── views/         LoginView, EmployeeListView, EmployeeDetailView, EmployeeFormView
@@ -226,14 +241,18 @@ El detalle, incluidas las trampas de CSRF en desarrollo, está en
    perfil: todos, su dirección o sus secciones.
 3. El serializer, con **`EmployeeFieldsMixin`**, le pide a **`EmployeeFieldPolicy`** las
    columnas visibles y descarta el resto. La clave no viene en la respuesta.
-4. Los filtros, la búsqueda y el orden solo aceptan columnas visibles.
+4. Los filtros, la búsqueda y el orden solo aceptan columnas visibles. Para no dibujar un
+   filtro que el backend va a ignorar, `GET /api/auth/me/` trae `readable_fields`: la
+   lista de columnas que el perfil ve. Es solo para la interfaz; quien decide sigue
+   siendo el backend.
 5. Un empleado fuera de alcance, pedido por `id`, responde **404**.
 
 ### 5.3 Edición por Talento Humano
 
 1. `EmployeeWritePermission` solo deja pasar `POST`/`PUT`/`PATCH` al perfil Talento Humano.
 2. Cada cambio queda en el historial con el usuario que lo hizo (`HistoryRequestMiddleware`).
-3. No existe `DELETE` de empleados: se retiran cambiando `status` a Retirado.
+3. No existe `DELETE` de empleados: se retiran cambiando `status` a Retirado, con su
+   fecha de retiro.
 
 ---
 
@@ -249,8 +268,11 @@ erDiagram
     DIVISION ||--o{ EMPLOYEE : ""
     SECTION ||--o{ EMPLOYEE : ""
     POSITION ||--o{ EMPLOYEE : "cargo actual / anterior"
+    COST_CENTER ||--o{ EMPLOYEE : "centro de costos"
     EMPLOYEE ||--o{ EMPLOYEE : "jefe inmediato"
     EMPLOYEE ||--o{ CONTRACT_EXTENSION : "prórrogas"
+    MONTHLY_CUT ||--o{ EMPLOYEE_SNAPSHOT : "empleados del mes"
+    EMPLOYEE ||--o{ EMPLOYEE_SNAPSHOT : ""
 ```
 
 *Figura 4. Modelo de datos*
@@ -262,15 +284,26 @@ erDiagram
 | `User` | users | Cuenta. Se autentica por `email`. Tiene `profile`, `division` y `sections` | Sí (sin contraseña ni último ingreso) |
 | `UserSection` | users | Secciones a cargo de un Líder | Sí |
 | `Position` | employees | Cargo. Catálogo editable por TH desde el admin (31 cargados) | — |
+| `CostCenter` | employees | Centro de costos: código y nombre. Catálogo editable por TH desde el admin (21 códigos cargados; el nombre arranca igual al código) | — |
 | `Employee` | employees | Un modelo plano, espejo de la especificación de TH | Sí |
-| `ContractExtension` | employees | Prórroga de contrato (varias por empleado) | Sí |
+| `MonthlyCut` | employees | Corte mensual: la fecha de cierre de un mes | — |
+| `EmployeeSnapshot` | employees | Copia de un empleado en un corte: todas sus columnas a esa fecha, más su dirección, sección y estado de ese mes | — |
+| `ContractExtension` | employees | Prórroga de contrato (varias por empleado). Guarda desde cuándo rige; registrarla mueve la fecha de vencimiento del empleado | Sí |
 
 Reglas del modelo de empleado:
 
-- Un empleado **no se borra**: se retira cambiando su estado (Activo / Retirado).
+- Un empleado **no se borra**: se retira cambiando su estado (Activo / Retirado) y
+  registrando la **fecha de retiro**, obligatoria para un retirado y no anterior a la de
+  ingreso. Si vuelve a quedar Activo, la fecha de retiro se borra; el historial conserva
+  la anterior.
 - La identificación es **única sin importar el tipo de documento**: quien pasa de T.I. a
   cédula con el mismo número conserva su registro.
 - Del cargo anterior se guarda solo el último, con sus fechas.
+- **Una prórroga mueve la fecha de vencimiento.** Se registra desde la ficha: el sistema
+  sugiere la nueva fecha (contrato fijo menor a un año: el mismo plazo hasta 3 prórrogas,
+  luego un año; fijo de un año: un año) y Talento Humano la confirma o la cambia. En el
+  admin las prórrogas son de solo lectura, para que no haya una prórroga sin vencimiento
+  nuevo.
 - Son **obligatorios** los datos que tiene todo empleado. Quedan opcionales solo los que
   no aplican a todos: foto, correo, título, dirección (Gerencia y Junta Directiva no
   tienen), jefe inmediato, cargo anterior, auxilio de transporte, fecha de vencimiento,
@@ -291,15 +324,26 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/auth/csrf/` | Entrega la cookie CSRF | Cualquiera |
 | POST | `/api/auth/login/` | Abre la sesión | Cualquiera |
 | POST | `/api/auth/logout/` | Cierra la sesión | Autenticado |
-| GET | `/api/auth/me/` | Usuario actual, perfil y alcance | Autenticado |
-| GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros y orden | Autenticado, recortado por perfil |
+| GET | `/api/auth/me/` | Usuario actual, perfil, alcance y columnas visibles (`readable_fields`) | Autenticado |
+| GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to`, `retirement_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
+| GET | `/api/indicators/?period=…&compare=…` | Indicadores de la analítica sobre el alcance del perfil; un periodo pasado sale de su corte. Un indicador hecho con una columna que el perfil no ve no se calcula | Autenticado, recortado por perfil |
+| GET | `/api/indicators/export/` | Los mismos indicadores en Excel, una hoja por indicador; queda en el registro de descargas | Autenticado, recortado por perfil |
+| GET | `/api/monthly-cuts/` | Cortes mensuales disponibles | Autenticado |
+| GET | `/api/monthly-cuts/{id}/employees/` | Empleados de un corte, con búsqueda y filtros de estado, dirección y sección | Autenticado, recortado por perfil con la dirección y la sección de ese mes |
+| POST | `/api/monthly-cuts/{id}/retake/` | Rehacer el último corte con los datos de hoy | Solo Talento Humano |
+| GET | `/api/employees/export-fields/` | Campos que el perfil puede elegir para un reporte | Autenticado |
+| GET | `/api/employees/report/?fields=…` | Vista previa paginada de un reporte, con los mismos filtros que el listado (más `team_of`: el equipo de un jefe, con toda su cadena) | Autenticado, recortado por perfil |
+| GET | `/api/employees/export/?file_format=xlsx\|csv\|pdf&fields=…` | Descarga del reporte; queda en el registro de descargas | Autenticado, recortado por perfil |
+| GET | `/api/employees/org-chart/` | Empleados activos del alcance con su jefe inmediato, cargo, dirección y sección, para el organigrama | Autenticado, recortado por perfil |
+| GET | `/api/employees/contract-alerts/` | Activos cuyo contrato vence en 50 días o menos, y los ya vencidos, con los días que faltan | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
-| POST | `/api/employees/{id}/extensions/` | Registrar una prórroga | Solo Talento Humano |
+| GET | `/api/employees/{id}/extensions/` | Nueva fecha de vencimiento sugerida por la regla legal | Solo Talento Humano |
+| POST | `/api/employees/{id}/extensions/` | Registrar una prórroga con su nueva fecha de vencimiento (`new_contract_end_date`): crea la prórroga, que rige desde el día siguiente al vencimiento anterior, y actualiza el vencimiento | Solo Talento Humano |
 | GET | `/api/employees/{id}/photo/` (`?size=thumb`) | Foto (o miniatura de 80×100) | Autenticado, si ve la foto |
 | PUT / DELETE | `/api/employees/{id}/photo/` | Subir / quitar la foto (JPG, PNG o WebP hasta 5 MB) | Solo Talento Humano |
-| GET | `/api/positions/` · `/api/divisions/` · `/api/sections/` | Catálogos | Autenticado |
+| GET | `/api/positions/` · `/api/cost-centers/` · `/api/divisions/` · `/api/sections/` | Catálogos | Autenticado |
 | — | `/admin/` | Admin de Django | TH y TI (§7.2) |
 
 ### 6.3 Pantallas del frontend
@@ -308,8 +352,13 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 |---|---|---|
 | `/ingreso` | Ingreso | Pública |
 | `/` → `/empleados` | Lista de empleados (inicio) | Autenticado |
+| `/empleados/organigrama` | Organigrama por jefe inmediato (empleados activos del alcance) | Autenticado |
+| `/empleados/estructura` | Empleados activos agrupados por dirección y sección | Autenticado |
 | `/empleados/:id` | Ficha del empleado | Autenticado |
 | `/empleados/nuevo` · `/empleados/:id/editar` | Formulario de empleado | Solo Talento Humano (el backend lo vuelve a validar) |
+| `/reportes` | Reportes y consultas | Autenticado |
+| `/analitica` | Analítica de Talento Humano: indicadores y gráficas | Autenticado |
+| `/vencimientos` | Vencimientos de contrato: activos que vencen en 50 días o menos y los ya vencidos | Solo Talento Humano |
 
 ---
 
@@ -339,7 +388,7 @@ niega el dato o el método es el backend.
 
 - **TI:** crea y desactiva cuentas, y asigna perfil, dirección o secciones. Ve a los
   empleados en solo lectura.
-- **Talento Humano** (con `is_staff`): crea y edita empleados y cargos.
+- **Talento Humano** (con `is_staff`): crea y edita empleados, cargos y centros de costos.
 - Nadie más entra a la parte de empleados del admin.
 
 ### 7.3 Datos personales
@@ -396,9 +445,14 @@ Resultado esperado: abrir <http://localhost:5173/ingreso> e iniciar sesión.
 Solo corren con `DEBUG=True`:
 
 ```powershell
+cd backend; .venv\Scripts\python.exe manage.py seed_demo             # todo lo de abajo, en orden
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_employees   # ~80 empleados inventados
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_users       # una cuenta por perfil
+cd backend; .venv\Scripts\python.exe manage.py seed_demo_cuts        # 12 cortes mensuales aproximados
 ```
+
+El recorrido para probar cada funcionalidad, cuenta por cuenta, está en
+[`guias/demo-funcionalidades.md`](guias/demo-funcionalidades.md).
 
 Las cuentas quedan como `demo.<perfil>@<dominio corporativo>`, con la contraseña de
 `DEMO_USERS_PASSWORD` del `.env`.
@@ -423,7 +477,7 @@ de `develop` y vuelve a `develop`. Los commits siguen *conventional commits* en 
 | Entorno | Dónde | Estado |
 |---|---|---|
 | Desarrollo | PC del desarrollador: Django `:8000`, Vite `:5173`, SQL Server en Docker | Activo |
-| Producción | Servidor de TI | **No definido** (§12) |
+| Producción | Servidor de TI | **No definido** |
 
 ### 9.2 Variables de entorno
 
@@ -443,6 +497,9 @@ de `develop` y vuelve a `develop`. Los commits siguen *conventional commits* en 
 | `NUM_PROXIES` | Proxies inversos delante de Django; de ahí sale la IP del límite de intentos | Los que monte TI; `0` si Django recibe las peticiones directo |
 | `MEDIA_ROOT` | Carpeta de las fotos | Carpeta fuera del código, respaldada, **nunca servida por el servidor web** |
 | `DEMO_USERS_PASSWORD` | Contraseña de las cuentas de demostración | **Vacío** |
+| `EMAIL_HOST` · `EMAIL_PORT` · `EMAIL_HOST_USER` · `EMAIL_HOST_PASSWORD` · `EMAIL_USE_TLS` | Servidor de correo (SMTP) para el aviso diario de vencimientos. Sin `EMAIL_HOST`, el correo se imprime en la consola | Los del servidor de correo de la empresa |
+| `DEFAULT_FROM_EMAIL` | Remitente de los correos del SIGTH | Un buzón del dominio corporativo |
+| `FRONTEND_BASE_URL` | Dirección pública del frontend, para los enlaces de los correos | `https://<dominio>` |
 
 `frontend/.env` (se incrusta en el build como texto plano, así que **nunca lleva
 secretos**):
@@ -457,13 +514,13 @@ secretos**):
 El proceso lo define TI. Esto es lo que el sistema necesita, sea cual sea:
 
 1. **SQL Server** con una base `sigth` y un login `sigth_app` con `db_ddladmin` +
-   `db_datareader` + `db_datawriter`. Revisar la collation (§12).
+   `db_datareader` + `db_datawriter`. Revisar la collation.
 2. **Backend:**
    - Python 3.13 con `pip install -r backend/requirements.txt` (sin `flake8`);
    - driver ODBC 18 instalado;
    - `backend/.env` completo según §9.2, con `DEBUG=False`.
 3. **Migraciones:** `python manage.py migrate`. Cargan también las direcciones, las
-   secciones y los cargos iniciales, y crean la tabla de caché `sigth_cache`, donde vive
+   secciones, los cargos y los centros de costos iniciales, y crean la tabla de caché `sigth_cache`, donde vive
    el límite de intentos de ingreso.
 4. **Estáticos del admin:** `python manage.py collectstatic` (van a `backend/staticfiles/`).
 5. **Servidor de aplicación WSGI** apuntando a `config.wsgi.application`, detrás de un
@@ -493,6 +550,9 @@ la versión nueva traía migraciones, revertirlas con `python manage.py migrate 
 | Respaldo de `MEDIA_ROOT` | Igual que la base | TI | Copia de la carpeta de fotos |
 | Alta y baja de cuentas | Cuando alguien entra o sale | TI | §10.2 |
 | Completar el catálogo de cargos | Cuando aparece un cargo nuevo | Talento Humano | Admin → Cargos |
+| Corte mensual de los empleados | **Diaria**, en la misma tarea que el aviso de vencimientos; solo actúa el día 1 | TI lo programa | `python manage.py take_monthly_cut`. El día 1 guarda el mes que terminó; si ya existe, no lo repite. `--date AAAA-MM-DD` toma un mes puntual. Se ven en Admin → Cortes mensuales |
+| Aviso de vencimientos de contrato | **Diaria**, por la mañana (propuesta: 6:00) | TI lo programa (cron o Programador de tareas) | `python manage.py send_contract_alerts`. Si ya salió ese día no lo repite; `--force` lo reenvía. Cada envío queda en Admin → Envíos de vencimientos |
+| Poner o cambiar el nombre de un centro de costos | Al arrancar (los 21 vienen con el código como nombre) o cuando Contabilidad crea o renombra uno | Talento Humano | Admin → Centros de costos |
 
 ### 10.2 Administración de cuentas
 
@@ -508,6 +568,8 @@ la versión nueva traía migraciones, revertirlas con `python manage.py migrate 
 ### 10.3 Operaciones sobre empleados
 
 - **Retirar a un empleado:** en su ficha, cambiar el estado a *Retirado*. Nunca se borra.
+- **Ver quién descargó qué:** en el admin, **Descargas de empleados** (usuario, fecha,
+  formato, filtros, campos y número de filas).
 - **Ver quién cambió un dato:** en el admin, abrir el empleado → **Historial**.
 
 ### 10.4 Incidentes comunes
@@ -541,26 +603,17 @@ producción, TI recoge esa salida con su servidor de aplicación. Los ingresos s
 | [0005](adr/0005-modelo-de-empleado-plano.md) | Un modelo de empleado plano, espejo de la especificación de TH | Aceptada |
 | [0006](adr/0006-fotos-solo-por-la-api.md) | Fotos de empleados servidas solo por la API | Aceptada |
 | [0007](adr/0007-historial-con-django-simple-history.md) | Historial de cambios con `django-simple-history` | Aceptada |
+| [0008](adr/0008-reportes-descargables-con-el-mismo-recorte.md) | Reportes descargables con el mismo recorte de acceso, y `reportlab` para el PDF | Aceptada |
+| [0009](adr/0009-cortes-mensuales-como-copia.md) | Cortes mensuales como copia de los empleados, recortada al leer | Aceptada |
 
 ---
 
-## 12. Riesgos, deuda técnica y pendientes
+## 12. Riesgos y deuda técnica
 
-Los pendientes de negocio y de infraestructura se llevan en esta tabla, con numeración
-fija: al cerrar uno se borra su fila sin renumerar las demás, para que las citas desde
-otros documentos sigan apuntando a lo mismo.
-
-| # | Tipo | Descripción | Impacto | Recomendación |
-|---|---|---|---|---|
-| 1 | Riesgo | El repositorio está en la **cuenta personal de GitHub** de Juan Trujillo. | Alto | Transferirlo a una organización o cuenta de Forjas |
-| 2 | Pendiente | **Servidor de producción sin definir**: sistema operativo, versión de SQL Server, proceso de despliegue y collation. | Alto | TI lo define. Usar la lista de §9.3 |
-| 3 | Pendiente | **Quién administra el esquema**: migraciones de Django o scripts de TI. | Alto | Cerrarlo antes del primer despliegue: cambiarlo después, con datos cargados, exige migrar datos |
-| 4 | Pendiente | **Importación del Excel actual** no construida: sin ella no hay forma masiva de cargar los empleados reales. | Alto | Construir el servicio de importación (`openpyxl` ya está en las dependencias) |
-| 5 | Pendiente | **Dónde viven las fotos en producción** y cómo se respaldan. | Medio | TI define `MEDIA_ROOT` y su respaldo |
-| 7 | Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
-| 8 | Pendiente | Exportación de listados e indicadores con gráficas, sin construir. Los indicadores del Excel no están definidos. | Medio | Definirlos con Talento Humano |
-| 9 | Pendiente | Volumen real de empleados, direcciones y usuarios concurrentes, por confirmar con Talento Humano. | Bajo | Cerrarlo con TH |
-| 10 | Pendiente | Tiempo de retención del historial de auditoría. | Bajo | Seguridad de la Información |
+| Tipo | Descripción | Impacto | Recomendación |
+|---|---|---|---|
+| Riesgo | El repositorio está en la **cuenta personal de GitHub** de Juan Trujillo. | Alto | Transferirlo a una organización o cuenta de Forjas |
+| Deuda | **Sin pruebas automatizadas.** El control de acceso depende de revisar a mano cada vista y serializer nuevos. | Medio | Acordar una suite mínima sobre `users/access/` antes de seguir creciendo |
 
 ---
 
@@ -608,3 +661,4 @@ otros documentos sigan apuntando a lo mismo.
 |---|---|---|---|
 | 0.1 | 2026-09-29 | Juan Trujillo | Borrador inicial a partir del código y las guías de `docs/` |
 | 0.2 | 2026-10-01 | Juan Trujillo | El documento queda completo por sí solo: reglas del modelo, convenciones y pendientes propios |
+| 0.3 | 2026-10-06 | Juan Trujillo | Los pendientes salen del documento; §12 queda con los riesgos y la deuda técnica |

@@ -16,6 +16,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: number | null]
+  'update:selectedLabel': [value: string | null]
 }>()
 
 const label = ref<string | null>(props.selectedLabel)
@@ -63,11 +64,13 @@ function select(employee: EmployeeListItem): void {
   search.value = ''
   results.value = []
   emit('update:modelValue', employee.id)
+  emit('update:selectedLabel', employee.full_name)
 }
 
 function clear(): void {
   label.value = null
   emit('update:modelValue', null)
+  emit('update:selectedLabel', null)
 }
 </script>
 

@@ -13,7 +13,7 @@ import {
   type EmployeeFieldSpec,
 } from '@/shared/employees/employeeLayout'
 import BaseService from '@/shared/services/BaseService'
-import type { Employee, EmployeeChoices, EmployeePayload } from '@/types/employee.types'
+import type { CostCenter, Employee, EmployeeChoices, EmployeePayload } from '@/types/employee.types'
 import type { CatalogItem } from '@/types/organization.types'
 
 type FormValue = string | number | boolean | null
@@ -26,6 +26,7 @@ const EMPTY_AS_NULL = new Set<EmployeeFieldKind>([
   'division',
   'section',
   'position',
+  'costCenter',
   'boss',
 ])
 
@@ -44,6 +45,7 @@ const choices = ref<EmployeeChoices>({})
 const divisions = ref<CatalogItem[]>([])
 const sections = ref<CatalogItem[]>([])
 const positions = ref<CatalogItem[]>([])
+const costCenters = ref<CostCenter[]>([])
 
 const isLoading = ref(false)
 const isSaving = ref(false)
@@ -58,17 +60,31 @@ const editableBlocks = computed(() =>
   })),
 )
 
-function catalogFor(field: EmployeeFieldSpec): CatalogItem[] {
-  if (field.kind === 'division') {
-    return divisions.value
+function catalogFor(field: EmployeeFieldSpec): (CatalogItem | CostCenter)[] {
+  switch (field.kind) {
+    case 'division':
+      return divisions.value
+    case 'section':
+      return sections.value
+    case 'costCenter':
+      return costCenters.value
+    default:
+      return positions.value
   }
-
-  return field.kind === 'section' ? sections.value : positions.value
 }
 
 // inactive catalog entries stay listed only when the employee already has them
-function selectableItems(field: EmployeeFieldSpec): CatalogItem[] {
+function selectableItems(field: EmployeeFieldSpec): (CatalogItem | CostCenter)[] {
   return catalogFor(field).filter((item) => item.is_active || item.id === form.value[field.name])
+}
+
+// interface convenience only: the backend clears and validates the retirement date itself
+function isShown(field: EmployeeFieldSpec): boolean {
+  return field.name !== 'retirement_date' || form.value.status === 'retired'
+}
+
+function itemLabel(item: CatalogItem | CostCenter): string {
+  return 'code' in item ? `${item.code} — ${item.name}` : item.name
 }
 
 function buildPayload(): EmployeePayload {
@@ -94,19 +110,27 @@ async function load(): Promise<void> {
   errorMessage.value = null
 
   try {
-    const [loadedChoices, loadedDivisions, loadedSections, loadedPositions, employee] =
-      await Promise.all([
-        EmployeeService.getChoices(),
-        OrganizationService.getDivisions(),
-        OrganizationService.getSections(),
-        EmployeeService.getPositions(),
-        isEditing ? EmployeeService.get(employeeId) : Promise.resolve(null),
-      ])
+    const [
+      loadedChoices,
+      loadedDivisions,
+      loadedSections,
+      loadedPositions,
+      loadedCostCenters,
+      employee,
+    ] = await Promise.all([
+      EmployeeService.getChoices(),
+      OrganizationService.getDivisions(),
+      OrganizationService.getSections(),
+      EmployeeService.getPositions(),
+      EmployeeService.getCostCenters(),
+      isEditing ? EmployeeService.get(employeeId) : Promise.resolve(null),
+    ])
 
     choices.value = loadedChoices
     divisions.value = loadedDivisions
     sections.value = loadedSections
     positions.value = loadedPositions
+    costCenters.value = loadedCostCenters
 
     form.value = employee ? valuesOf(employee) : emptyValues()
     bossName.value = employee?.immediate_boss_name ?? null
@@ -222,7 +246,7 @@ onMounted(load)
 
             <div class="row g-3 flex-grow-1 align-content-start">
               <div
-                v-for="field in block.fields"
+                v-for="field in block.fields.filter(isShown)"
                 :key="field.name"
                 :class="
                   field.kind === 'textarea' || field.kind === 'boss'
@@ -269,7 +293,8 @@ onMounted(load)
                   v-else-if="
                     field.kind === 'division' ||
                     field.kind === 'section' ||
-                    field.kind === 'position'
+                    field.kind === 'position' ||
+                    field.kind === 'costCenter'
                   "
                   :id="field.name"
                   v-model="form[field.name]"
@@ -279,7 +304,7 @@ onMounted(load)
                 >
                   <option :value="null">Sin dato</option>
                   <option v-for="item in selectableItems(field)" :key="item.id" :value="item.id">
-                    {{ item.name }}
+                    {{ itemLabel(item) }}
                   </option>
                 </select>
 

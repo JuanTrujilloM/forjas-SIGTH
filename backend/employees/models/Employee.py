@@ -1,6 +1,7 @@
 # external libraries imports
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
@@ -12,7 +13,6 @@ from employees.enums import (
     Area,
     BloodType,
     ContractType,
-    CostCenter,
     EducationLevel,
     EmployeeCategory,
     EmployeeStatus,
@@ -33,6 +33,7 @@ from employees.enums import (
 from employees.services import EmployeePhotoPath
 from employees.validators import EmployeePhotoValidator
 
+from .CostCenter import CostCenter
 from .Position import Position
 
 
@@ -114,14 +115,17 @@ class Employee(models.Model):
         verbose_name='Es líder',
         help_text='Con cargo de liderazgo o personal a cargo. No da acceso al sistema',
     )
-    cost_center = models.CharField(
-        max_length=20, choices=CostCenter.choices, verbose_name='Centro de costos'
-    )
     area = models.CharField(max_length=20, choices=Area.choices, verbose_name='Área')
     additional_role = models.CharField(
         max_length=30, choices=AdditionalRole.choices, verbose_name='Rol adicional'
     )
     hire_date = models.DateField(verbose_name='Fecha de ingreso')
+    retirement_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de retiro',
+        help_text='Obligatoria si el empleado está retirado; se borra al volver a Activo',
+    )
     training = models.TextField(
         blank=True, verbose_name='Formación', help_text='AROs y formaciones, en texto libre'
     )
@@ -188,6 +192,12 @@ class Employee(models.Model):
         related_name='employees',
         verbose_name='Sección',
     )
+    cost_center = models.ForeignKey(
+        CostCenter,
+        on_delete=models.PROTECT,
+        related_name='employees',
+        verbose_name='Centro de costos',
+    )
     position = models.ForeignKey(
         Position,
         on_delete=models.PROTECT,
@@ -225,6 +235,31 @@ class Employee(models.Model):
     def __str__(self):
         return self.full_name
 
+    def clean(self):
+        super().clean()
+        errors = self.retirement_errors(self.status, self.retirement_date, self.hire_date)
+
+        if errors:
+            raise ValidationError(errors)
+
+        if self.status == EmployeeStatus.ACTIVE:
+            self.retirement_date = None
+
+    @staticmethod
+    def retirement_errors(status, retirement_date, hire_date) -> dict[str, str]:
+        if status != EmployeeStatus.RETIRED:
+            return {}
+
+        if retirement_date is None:
+            return {'retirement_date': 'La fecha de retiro es obligatoria para un empleado retirado.'}
+
+        if hire_date is not None and retirement_date < hire_date:
+            return {
+                'retirement_date': 'La fecha de retiro no puede ser anterior a la fecha de ingreso.'
+            }
+
+        return {}
+
     @property
     def age(self) -> int | None:
         if self.birth_date is None:
@@ -252,10 +287,13 @@ class Employee(models.Model):
 
     @staticmethod
     def _whole_months_since(start) -> int:
-        today = timezone.localdate()
-        months = (today.year - start.year) * 12 + today.month - start.month
+        return Employee.whole_months_between(start, timezone.localdate())
 
-        if today.day < start.day:
+    @staticmethod
+    def whole_months_between(start, end) -> int:
+        months = (end.year - start.year) * 12 + end.month - start.month
+
+        if end.day < start.day:
             months -= 1
 
         return max(months, 0)

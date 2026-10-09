@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 # internal application code imports
+from employees.enums import EmployeeStatus
 from employees.models import Employee
 from users.access import EmployeeFieldsMixin
 
@@ -22,6 +23,12 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
     division_name = serializers.CharField(source='division.name', read_only=True, default=None)
     section_name = serializers.CharField(source='section.name', read_only=True, default=None)
     position_name = serializers.CharField(source='position.name', read_only=True, default=None)
+    cost_center_code = serializers.CharField(
+        source='cost_center.code', read_only=True, default=None
+    )
+    cost_center_name = serializers.CharField(
+        source='cost_center.name', read_only=True, default=None
+    )
     previous_position_name = serializers.CharField(
         source='previous_position.name', read_only=True, default=None
     )
@@ -69,11 +76,14 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'section',
             'section_name',
             'cost_center',
+            'cost_center_code',
+            'cost_center_name',
             'area',
             'additional_role',
             'immediate_boss',
             'immediate_boss_name',
             'hire_date',
+            'retirement_date',
             'seniority',
             'training',
             'current_salary',
@@ -125,6 +135,18 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
                 'previous_position_end_date':
                     'La fecha de fin del cargo anterior no puede ser anterior a la de inicio.',
             })
+
+        status = self._merged(attrs, 'status')
+
+        if status == EmployeeStatus.ACTIVE:
+            attrs['retirement_date'] = None
+
+        errors = Employee.retirement_errors(
+            status, self._merged(attrs, 'retirement_date'), self._merged(attrs, 'hire_date')
+        )
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return attrs
 

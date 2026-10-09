@@ -19,7 +19,6 @@ from employees.enums import (
     Area,
     BloodType,
     ContractType,
-    CostCenter,
     EducationLevel,
     EmployeeCategory,
     EmployeeStatus,
@@ -36,7 +35,14 @@ from employees.enums import (
     SeveranceFund,
     Sex,
 )
-from employees.models import ContractExtension, Employee, Position
+from employees.models import (
+    ContractExtension,
+    CostCenter,
+    Employee,
+    EmployeeSnapshot,
+    MonthlyCut,
+    Position,
+)
 from employees.services import EmployeePhotoService
 from users.models import Division, Section
 
@@ -123,12 +129,12 @@ AREA_BY_DIVISION = {
 }
 
 COST_CENTERS_BY_AREA = {
-    Area.ADMON_51: [CostCenter.PCOFB20000, CostCenter.PCOFB20114, CostCenter.PCOFB20300],
-    Area.MOD_72: [CostCenter.PCOFB30200, CostCenter.PCOFB30201, CostCenter.PCOFB30202,
-                  CostCenter.PCOFB30203, CostCenter.PCOFB30205, CostCenter.PCOFB30206],
-    Area.CIF_73: [CostCenter.PCOFB30300, CostCenter.PCOFB30500, CostCenter.PCOFB30503],
-    Area.LOG_52: [CostCenter.PCOFB40100, CostCenter.PCOFB40400],
-    Area.VENTAS_52: [CostCenter.PCOFB50103, CostCenter.PCOFB50302, CostCenter.PCOFB50400],
+    Area.ADMON_51: ['PCOFB20000', 'PCOFB20114', 'PCOFB20300'],
+    Area.MOD_72: ['PCOFB30200', 'PCOFB30201', 'PCOFB30202', 'PCOFB30203', 'PCOFB30205',
+                  'PCOFB30206'],
+    Area.CIF_73: ['PCOFB30300', 'PCOFB30500', 'PCOFB30503'],
+    Area.LOG_52: ['PCOFB40100', 'PCOFB40400'],
+    Area.VENTAS_52: ['PCOFB50103', 'PCOFB50302', 'PCOFB50400'],
 }
 
 OPERATIVE_CATEGORY = {
@@ -154,6 +160,35 @@ CONTRACT_MONTHS = {
     ContractType.FIXED_ONE_YEAR: 12,
     ContractType.FIXED_SPECIAL: 12,
 }
+
+# invented, like every other demo value: the specification only lists the codes
+DEMO_COST_CENTER_NAMES = {
+    'PCOFB20000': 'Gerencia General',
+    'PCOFB20114': 'Gestión Humana',
+    'PCOFB20300': 'Administración y Finanzas',
+    'PCOFB30200': 'Forja',
+    'PCOFB30201': 'Mecanizado',
+    'PCOFB30202': 'Soldadura',
+    'PCOFB30203': 'Corte',
+    'PCOFB30205': 'Tratamiento Térmico',
+    'PCOFB30206': 'Ensamble',
+    'PCOFB30207': 'Pintura',
+    'PCOFB30208': 'Cadenas',
+    'PCOFB30209': 'Esmeriles',
+    'PCOFB30300': 'Mantenimiento',
+    'PCOFB30500': 'Calidad',
+    'PCOFB30503': 'Ingeniería',
+    'PCOFB30601': 'Planeación',
+    'PCOFB40100': 'Almacenes',
+    'PCOFB40400': 'Logística',
+    'PCOFB50103': 'Ventas Nacionales',
+    'PCOFB50302': 'Mercadeo',
+    'PCOFB50400': 'Exportaciones',
+}
+
+# months ago, fixed and not drawn, so every month report and the trends have movement
+RECENT_HIRE_MONTHS = [0, 0, 1, 1, 2, 3, 5, 6, 8, 10]
+RECENT_RETIREMENT_MONTHS = [0, 1, 2, 4, 7, 9]
 
 TRANSPORT_ALLOWANCE = Decimal('200000')
 TRANSPORT_ALLOWANCE_CEILING = 3_600_000
@@ -219,6 +254,10 @@ class Command(BaseCommand):
 
     def _remove_demo(self, demo) -> None:
         ids = list(demo.values_list('id', flat=True))
+
+        # the monthly cuts copy these employees; a cut left empty goes with them
+        EmployeeSnapshot.objects.filter(employee_id__in=ids).delete()
+        MonthlyCut.objects.filter(snapshots__isnull=True).delete()
         photos = {
             record.photo
             for record in Employee.history.filter(id__in=ids)
@@ -238,6 +277,7 @@ class Command(BaseCommand):
     def _create_roster(self) -> list[Employee]:
         divisions = {division.name: division for division in Division.objects.all()}
         sections = {section.name: section for section in Section.objects.all()}
+        self.cost_centers = {center.code: center for center in CostCenter.objects.all()}
         positions = {
             name: Position.objects.get_or_create(name=name)[0]
             for name in {row[1] for row in ROSTER}
@@ -271,7 +311,95 @@ class Command(BaseCommand):
             by_key[key] = employee
             section_positions.setdefault(section_name, []).append(positions[position_name])
 
-        return list(by_key.values())
+        employees = list(by_key.values())
+        recent_hires = self._move_hires_to_recent_months(employees)
+        self._retire_in_recent_months(employees, recent_hires)
+        self._bring_contract_ends_near(employees)
+        self._shorten_one_contract(recent_hires)
+        self._name_cost_centers()
+
+        return employees
+
+    def _plain_operatives(self, employees: list[Employee]) -> list[Employee]:
+        return [
+            employee for employee in employees
+            if employee.status == EmployeeStatus.ACTIVE
+            and employee.evaluation_group == EvaluationGroup.OPERATIVE
+            and employee.category not in (EmployeeCategory.PRODUCTION_APPRENTICE,
+                                          EmployeeCategory.PRODUCTION_APPRENTICE_AD)
+            and not employee.direct_reports.exists()
+        ]
+
+    def _day_in_month(self, months_ago: int, index: int) -> date:
+        first = add_months(self.today.replace(day=1), -months_ago)
+        last_day = self.today.day if months_ago == 0 else 28
+
+        return first.replace(day=min(1 + index * 3 % 27, last_day))
+
+    def _move_hires_to_recent_months(self, employees: list[Employee]) -> list[Employee]:
+        hires = self._plain_operatives(employees)[::4][:len(RECENT_HIRE_MONTHS)]
+
+        for index, (employee, months_ago) in enumerate(zip(hires, RECENT_HIRE_MONTHS)):
+            hire_date = self._day_in_month(months_ago, index)
+            employee.extensions.all().delete()
+            employee.hire_date = hire_date
+            employee.position_start_date = hire_date
+            employee.previous_position = None
+            employee.previous_position_start_date = None
+            employee.previous_position_end_date = None
+            months = CONTRACT_MONTHS.get(employee.contract_type)
+            if months is not None:
+                employee.contract_end_date = add_months(hire_date, months)
+            employee.save()
+            self._add_extensions(employee)
+
+        return hires
+
+    def _retire_in_recent_months(self, employees: list[Employee], hires: list[Employee]) -> None:
+        candidates = [
+            employee for employee in self._plain_operatives(employees)
+            if employee not in hires and employee.hire_date < add_months(self.today, -12)
+        ][1::3][:len(RECENT_RETIREMENT_MONTHS)]
+
+        for index, (employee, months_ago) in enumerate(zip(candidates, RECENT_RETIREMENT_MONTHS)):
+            employee.status = EmployeeStatus.RETIRED
+            employee.retirement_date = self._day_in_month(months_ago, index)
+            employee.save(update_fields=['status', 'retirement_date', 'updated_at'])
+
+    # a three-month contract with no extension yet, about to end: its suggestion is three months
+    def _shorten_one_contract(self, hires: list[Employee]) -> None:
+        employee = next(
+            (hire for hire in hires if hire.hire_date <= add_months(self.today, -2)), None
+        )
+
+        if employee is None:
+            return
+
+        employee.extensions.all().delete()
+        employee.employment_type = EmploymentType.DIRECT
+        employee.contract_type = ContractType.FIXED_THREE_MONTHS
+        employee.contract_end_date = add_months(employee.hire_date, 3)
+        employee.save()
+
+    # only the names still equal to the code: one set by hand in the admin is kept
+    def _name_cost_centers(self) -> None:
+        for center in CostCenter.objects.filter(code__in=DEMO_COST_CENTER_NAMES):
+            if center.name == center.code:
+                center.name = DEMO_COST_CENTER_NAMES[center.code]
+                center.save(update_fields=['name', 'updated_at'])
+
+    # fixed offsets, not drawn, so the contract alerts always have an expired and a near case
+    def _bring_contract_ends_near(self, employees: list[Employee]) -> None:
+        candidates = [
+            employee for employee in employees
+            if employee.status == EmployeeStatus.ACTIVE
+            and employee.contract_type in CONTRACT_MONTHS
+            and employee.hire_date < add_months(self.today, -3)
+        ]
+
+        for employee, days in zip(candidates[::3], [-6, 3, 12, 27, 41]):
+            employee.contract_end_date = self.today + timedelta(days=days)
+            employee.save(update_fields=['contract_end_date', 'updated_at'])
 
     def _build(self, *, index, role, position, division, section, boss, is_foreign, is_retired,
                note, previous_candidates) -> Employee:
@@ -337,6 +465,11 @@ class Command(BaseCommand):
         elif contract_type == ContractType.WORK_AND_LABOR:
             contract_end_date = self.today + timedelta(days=rnd.randint(20, 240))
 
+        # derived from the index, not drawn: drawing would shift every employee generated after
+        retirement_date = None
+        if is_retired:
+            retirement_date = max(hire_date, self.today - timedelta(days=(index * 37) % 330 + 5))
+
         employee = Employee(
             status=EmployeeStatus.RETIRED if is_retired else EmployeeStatus.ACTIVE,
             id_type=id_type,
@@ -372,11 +505,12 @@ class Command(BaseCommand):
             previous_position_end_date=previous_end,
             is_leader=role in ('executive', 'director', 'leader'),
             section=section,
-            cost_center=rnd.choice(COST_CENTERS_BY_AREA[area]),
+            cost_center=self.cost_centers[rnd.choice(COST_CENTERS_BY_AREA[area])],
             area=area,
             additional_role=self._additional_role(role, section.name),
             immediate_boss=boss,
             hire_date=hire_date,
+            retirement_date=retirement_date,
             current_salary=salary,
             salary_type=salary_type,
             transport_allowance=(
@@ -541,7 +675,9 @@ class Command(BaseCommand):
         renewals = 0
 
         while end < self.today:
-            ContractExtension.objects.create(employee=employee, extension_date=end)
+            ContractExtension.objects.create(
+                employee=employee, extension_date=end + timedelta(days=1)
+            )
             renewals += 1
             end = add_months(end, 12 if renewals >= 3 else months)
 
