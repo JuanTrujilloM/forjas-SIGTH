@@ -9,7 +9,6 @@ from employees.models import (
     ContractExtension,
     CostCenter,
     Employee,
-    EmployeeExportLog,
     MonthlyCut,
     Position,
 )
@@ -77,21 +76,6 @@ class MonthlyCutAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
     @admin.display(description='Empleados', ordering='employee_count')
     def employee_count(self, cut: MonthlyCut) -> int:
         return cut.employee_count
-
-    def has_add_permission(self, request, obj=None) -> bool:
-        return False
-
-    def has_change_permission(self, request, obj=None) -> bool:
-        return False
-
-
-@admin.register(EmployeeExportLog)
-class EmployeeExportLogAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
-    list_display = ['created_at', 'user', 'title', 'file_format', 'row_count']
-    list_filter = ['file_format']
-    search_fields = ['user__email', 'title']
-    readonly_fields = ['created_at', 'user', 'title', 'file_format', 'row_count', 'filters', 'fields']
-    list_select_related = ['user']
 
     def has_add_permission(self, request, obj=None) -> bool:
         return False

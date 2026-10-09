@@ -74,7 +74,7 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
 
 - **Reportes y consultas** (`/reportes`): filtros combinados, elección y orden de campos,
   vista previa y descarga en Excel, CSV o PDF, con reportes listos (ingresos y retiros
-  del mes, por dirección, por líder y por sección). Cada descarga queda registrada.
+  del mes, por dirección, por líder y por sección).
 
 - **Analítica de Talento Humano** (`/analitica`): resumen (activos, ingresos, retiros y
   variación frente a otro mes), evolución mensual y anual de los activos, distribución
@@ -329,13 +329,13 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
 | GET | `/api/indicators/?period=…&compare=…` | Indicadores de la analítica sobre el alcance del perfil; un periodo pasado sale de su corte. Un indicador hecho con una columna que el perfil no ve no se calcula | Autenticado, recortado por perfil |
-| GET | `/api/indicators/export/` | Los mismos indicadores en Excel, una hoja por indicador; queda en el registro de descargas | Autenticado, recortado por perfil |
+| GET | `/api/indicators/export/` | Los mismos indicadores en Excel, una hoja por indicador | Autenticado, recortado por perfil |
 | GET | `/api/monthly-cuts/` | Cortes mensuales disponibles | Autenticado |
 | GET | `/api/monthly-cuts/{id}/employees/` | Empleados de un corte, con búsqueda y filtros de estado, dirección y sección | Autenticado, recortado por perfil con la dirección y la sección de ese mes |
 | POST | `/api/monthly-cuts/{id}/retake/` | Rehacer el último corte con los datos de hoy | Solo Talento Humano |
 | GET | `/api/employees/export-fields/` | Campos que el perfil puede elegir para un reporte | Autenticado |
 | GET | `/api/employees/report/?fields=…` | Vista previa paginada de un reporte, con los mismos filtros que el listado (más `team_of`: el equipo de un jefe, con toda su cadena) | Autenticado, recortado por perfil |
-| GET | `/api/employees/export/?file_format=xlsx\|csv\|pdf&fields=…` | Descarga del reporte; queda en el registro de descargas | Autenticado, recortado por perfil |
+| GET | `/api/employees/export/?file_format=xlsx\|csv\|pdf&fields=…` | Descarga del reporte | Autenticado, recortado por perfil |
 | GET | `/api/employees/org-chart/` | Empleados activos del alcance con su jefe inmediato, cargo, dirección y sección, para el organigrama | Autenticado, recortado por perfil |
 | GET | `/api/employees/contract-alerts/` | Activos cuyo contrato vence en 50 días o menos, y los ya vencidos, con los días que faltan | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
@@ -568,8 +568,6 @@ la versión nueva traía migraciones, revertirlas con `python manage.py migrate 
 ### 10.3 Operaciones sobre empleados
 
 - **Retirar a un empleado:** en su ficha, cambiar el estado a *Retirado*. Nunca se borra.
-- **Ver quién descargó qué:** en el admin, **Descargas de empleados** (usuario, fecha,
-  formato, filtros, campos y número de filas).
 - **Ver quién cambió un dato:** en el admin, abrir el empleado → **Historial**.
 
 ### 10.4 Incidentes comunes

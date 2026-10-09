@@ -14,7 +14,7 @@ from rest_framework.response import Response
 # internal application code imports
 from employees.enums import EmployeeStatus
 from employees.filters import EmployeeFilterSet
-from employees.models import Employee, EmployeeExportLog
+from employees.models import Employee
 from employees.serializers import (
     ContractAlertSerializer,
     ContractExtensionRequestSerializer,
@@ -136,19 +136,6 @@ class EmployeeViewSet(
         description = request.query_params.get('description', '').strip()[:500]
 
         content = EmployeeExportService.render(file_format, title, description, columns, rows)
-
-        EmployeeExportLog.objects.create(
-            user=request.user,
-            file_format=file_format,
-            title=title,
-            filters={
-                key: values[0] if len(values) == 1 else values
-                for key, values in request.query_params.lists()
-                if key not in ('file_format', 'fields', 'title', 'description')
-            },
-            fields=[column.key for column in columns],
-            row_count=len(rows),
-        )
 
         response = HttpResponse(content, content_type=EmployeeExportService.FORMATS[file_format])
         response['Content-Disposition'] = (
