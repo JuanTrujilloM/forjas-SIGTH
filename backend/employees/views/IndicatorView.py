@@ -94,5 +94,4 @@ class IndicatorView(EmployeeScopedMixin, GenericAPIView):
                 for cut in reversed(cuts)
             ],
             'indicators': indicators,
-            'row_count': len(rows),
         }

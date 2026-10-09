@@ -9,8 +9,6 @@ from openpyxl.styles import Font
 from rest_framework.request import Request
 
 # internal application code imports
-from employees.models import EmployeeExportLog
-
 from .IndicatorView import IndicatorView
 
 
@@ -22,7 +20,7 @@ class IndicatorExportView(IndicatorView):
         workbook.remove(workbook.active)
 
         for indicator in result['indicators']:
-            sheet = workbook.create_sheet(indicator['key'][:31])
+            sheet = workbook.create_sheet(indicator['sheet'])
             sheet.append([indicator['title']])
             sheet['A1'].font = Font(bold=True, size=12)
             sheet.append([result['period']['label']])
@@ -32,16 +30,6 @@ class IndicatorExportView(IndicatorView):
                 sheet.append(line)
 
             sheet.column_dimensions['A'].width = 40
-
-        title = f'Analítica de Talento Humano — {result["period"]["label"]}'
-        EmployeeExportLog.objects.create(
-            user=request.user,
-            file_format='xlsx',
-            title=title,
-            filters={key: value for key, value in request.query_params.items()},
-            fields=[indicator['key'] for indicator in result['indicators']],
-            row_count=result['row_count'],
-        )
 
         buffer = io.BytesIO()
         workbook.save(buffer)

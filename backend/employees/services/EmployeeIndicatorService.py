@@ -39,6 +39,7 @@ MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agost
 class Indicator:
     key: str
     title: str
+    sheet: str
     kind: str
     fields: frozenset[str]
     compute: Callable
@@ -78,10 +79,12 @@ class EmployeeIndicatorService:
         compare: tuple[date, list[dict]] | None,
     ) -> list[dict]:
         context = {'on': on, 'history': history, 'compare': compare}
+        month = MONTHS[on.month - 1]
         indicators = [
             {
                 'key': indicator.key,
-                'title': indicator.title,
+                'title': indicator.title.format(month=month),
+                'sheet': indicator.sheet.format(month=month),
                 'kind': indicator.kind,
                 'data': indicator.compute(rows, context),
             }
@@ -276,64 +279,64 @@ def _seniority(row: dict) -> str | None:
 
 
 INDICATORS = [
-    Indicator('summary', 'Resumen', 'summary',
+    Indicator('summary', 'Resumen', 'Resumen', 'summary',
               frozenset({'status', 'hire_date', 'retirement_date'}), _summary),
-    Indicator('evolution', 'Evolución de colaboradores activos', 'line',
+    Indicator('evolution', 'Evolución de colaboradores activos', 'Evolución de activos', 'line',
               frozenset({'status'}), _evolution),
-    Indicator('variation', 'Variación por dirección', 'table',
+    Indicator('variation', 'Variación por dirección', 'Variación por dirección', 'table',
               frozenset({'status', 'division_name'}), _variation),
-    Indicator('by_category', 'Personal activo por categoría', 'bar',
+    Indicator('by_category', 'Personal activo por categoría', 'Por categoría', 'bar',
               frozenset({'status', 'category'}),
               lambda rows, context: _bar(_active_counter(
                   rows, lambda row: _choice_label(EmployeeCategory.choices, row['category'])))),
-    Indicator('by_division', 'Personal activo por dirección', 'bar',
+    Indicator('by_division', 'Personal activo por dirección', 'Por dirección', 'bar',
               frozenset({'status', 'division_name'}),
               lambda rows, context: _bar(_active_counter(
                   rows, lambda row: row['division_name'] or NO_DIVISION))),
-    Indicator('by_section', 'Personal activo por sección', 'bar',
+    Indicator('by_section', 'Personal activo por sección', 'Por sección', 'bar',
               frozenset({'status', 'section_name'}),
               lambda rows, context: _bar(_active_counter(
                   rows, lambda row: row['section_name'] or 'Sin sección'))),
-    Indicator('by_position', 'Personal activo por cargo', 'bar',
+    Indicator('by_position', 'Personal activo por cargo', 'Por cargo', 'bar',
               frozenset({'status', 'position_name'}),
               lambda rows, context: _bar(_active_counter(
                   rows, lambda row: row['position_name'] or 'Sin cargo'))),
-    Indicator('division_by_sex', 'Dirección por sexo', 'crosstab',
+    Indicator('division_by_sex', 'Dirección por sexo', 'Dirección por sexo', 'crosstab',
               frozenset({'status', 'division_name', 'sex'}),
               lambda rows, context: _by_sex(
                   EmployeeIndicatorService.active(rows),
                   lambda row: row['division_name'] or NO_DIVISION)),
-    Indicator('employment_by_sex', 'Vinculación por sexo', 'crosstab',
+    Indicator('employment_by_sex', 'Vinculación por sexo', 'Vinculación por sexo', 'crosstab',
               frozenset({'status', 'employment_type', 'category', 'sex'}),
               lambda rows, context: _by_sex(
                   EmployeeIndicatorService.active(rows), _employment,
                   [label for _, label in EmploymentType.choices] + ['Aprendices'])),
-    Indicator('contract_by_sex', 'Tipo de contratación por sexo', 'crosstab',
+    Indicator('contract_by_sex', 'Tipo de contratación por sexo', 'Contratación por sexo', 'crosstab',
               frozenset({'status', 'contract_type', 'sex'}),
               lambda rows, context: _by_sex(
                   EmployeeIndicatorService.active(rows),
                   lambda row: _choice_label(ContractType.choices, row['contract_type']),
                   [label for _, label in ContractType.choices])),
-    Indicator('age_by_sex', 'Edad por sexo', 'crosstab',
+    Indicator('age_by_sex', 'Edad por sexo', 'Edad por sexo', 'crosstab',
               frozenset({'status', 'age', 'sex'}),
               lambda rows, context: _by_sex(
                   [row for row in EmployeeIndicatorService.active(rows) if _age(row)], _age,
                   [label for _, _, label in AGE_RANGES])),
-    Indicator('seniority', 'Antigüedad', 'bar',
+    Indicator('seniority', 'Antigüedad', 'Antigüedad', 'bar',
               frozenset({'status', 'seniority'}),
               lambda rows, context: _bar(
                   Counter(label for row in EmployeeIndicatorService.active(rows)
                           if (label := _seniority(row))),
                   [label for _, _, label in SENIORITY_RANGES])),
-    Indicator('collective_agreement', 'Pacto colectivo', 'bar',
+    Indicator('collective_agreement', 'Pacto colectivo', 'Pacto colectivo', 'bar',
               frozenset({'status', 'collective_agreement'}),
               lambda rows, context: _bar(
                   _active_counter(rows, lambda row: 'Sí' if row['collective_agreement'] else 'No'),
                   ['Sí', 'No'])),
-    Indicator('section_salary', 'Personal y salario por sección', 'table',
+    Indicator('section_salary', 'Personal y salario por sección', 'Salario por sección', 'table',
               frozenset({'status', 'section_name', 'division_name', 'current_salary'}),
               _section_salary),
-    Indicator('birthdays', 'Cumpleaños del mes', 'list',
+    Indicator('birthdays', 'Cumpleaños del mes de {month}', 'Cumpleaños de {month}', 'list',
               frozenset({'status', 'birth_date', 'full_name', 'position_name', 'section_name'}),
               _birthdays),
 ]

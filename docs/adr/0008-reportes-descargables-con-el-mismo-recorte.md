@@ -1,7 +1,8 @@
 # 0008. Reportes descargables con el mismo recorte de acceso
 
 **Fecha:** 2026-10-07
-**Estado:** Aceptada
+**Estado:** Aceptada. El 2026-10-09 se retiró el registro de descargas
+(`EmployeeExportLog`) que esta decisión había creado.
 
 ## Contexto
 
@@ -21,8 +22,6 @@ una fila o una columna de más, la fuga ya no se puede deshacer.
   entre los que su perfil ve; un campo pedido que no ve se ignora, igual que un filtro.
   El catálogo de columnas exportables vive en `EmployeeExportService` y cada columna debe
   estar en un bloque de `EMPLOYEE_FIELD_GROUPS`, o no la ve nadie.
-- **Cada descarga queda registrada** en `EmployeeExportLog`: usuario, fecha, formato,
-  título, filtros, campos y número de filas. Se consulta en el admin, en solo lectura.
 - **Formatos**: Excel con `openpyxl` (ya estaba en las dependencias), CSV con la librería
   estándar (punto y coma y BOM, para que Excel en español lo abra bien) y PDF con
   **`reportlab`**.
@@ -42,4 +41,3 @@ una fila o una columna de más, la fuga ya no se puede deshacer.
 - Un archivo descargado nunca trae más de lo que el usuario ve en pantalla.
 - El PDF de un reporte con muchas columnas reduce la letra para que quepan en una hoja
   horizontal. Para trabajar con muchas columnas, el formato indicado es Excel.
-- El registro de descargas crece con el uso. Su retención va con la del historial.
