@@ -100,6 +100,7 @@ export const EMPLOYEE_BLOCKS: EmployeeBlock[] = [
       { name: 'additional_role', label: 'Rol adicional', kind: 'choice', required: true },
       { name: 'immediate_boss', label: 'Jefe inmediato', kind: 'boss' },
       { name: 'hire_date', label: 'Fecha de ingreso', kind: 'date', required: true },
+      { name: 'retirement_date', label: 'Fecha de retiro', kind: 'date' },
       { name: 'seniority', label: 'Antigüedad', kind: 'computed' },
       { name: 'training', label: 'Formación', kind: 'textarea' },
     ],

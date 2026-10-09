@@ -337,6 +337,11 @@ class Command(BaseCommand):
         elif contract_type == ContractType.WORK_AND_LABOR:
             contract_end_date = self.today + timedelta(days=rnd.randint(20, 240))
 
+        # derived from the index, not drawn: drawing would shift every employee generated after
+        retirement_date = None
+        if is_retired:
+            retirement_date = max(hire_date, self.today - timedelta(days=(index * 37) % 330 + 5))
+
         employee = Employee(
             status=EmployeeStatus.RETIRED if is_retired else EmployeeStatus.ACTIVE,
             id_type=id_type,
@@ -377,6 +382,7 @@ class Command(BaseCommand):
             additional_role=self._additional_role(role, section.name),
             immediate_boss=boss,
             hire_date=hire_date,
+            retirement_date=retirement_date,
             current_salary=salary,
             salary_type=salary_type,
             transport_allowance=(

@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 # internal application code imports
+from employees.enums import EmployeeStatus
 from employees.models import Employee
 from users.access import EmployeeFieldsMixin
 
@@ -82,6 +83,7 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'immediate_boss',
             'immediate_boss_name',
             'hire_date',
+            'retirement_date',
             'seniority',
             'training',
             'current_salary',
@@ -133,6 +135,18 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
                 'previous_position_end_date':
                     'La fecha de fin del cargo anterior no puede ser anterior a la de inicio.',
             })
+
+        status = self._merged(attrs, 'status')
+
+        if status == EmployeeStatus.ACTIVE:
+            attrs['retirement_date'] = None
+
+        errors = Employee.retirement_errors(
+            status, self._merged(attrs, 'retirement_date'), self._merged(attrs, 'hire_date')
+        )
+
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return attrs
 

@@ -238,7 +238,8 @@ El detalle, incluidas las trampas de CSRF en desarrollo, está en
 
 1. `EmployeeWritePermission` solo deja pasar `POST`/`PUT`/`PATCH` al perfil Talento Humano.
 2. Cada cambio queda en el historial con el usuario que lo hizo (`HistoryRequestMiddleware`).
-3. No existe `DELETE` de empleados: se retiran cambiando `status` a Retirado.
+3. No existe `DELETE` de empleados: se retiran cambiando `status` a Retirado, con su
+   fecha de retiro.
 
 ---
 
@@ -274,7 +275,10 @@ erDiagram
 
 Reglas del modelo de empleado:
 
-- Un empleado **no se borra**: se retira cambiando su estado (Activo / Retirado).
+- Un empleado **no se borra**: se retira cambiando su estado (Activo / Retirado) y
+  registrando la **fecha de retiro**, obligatoria para un retirado y no anterior a la de
+  ingreso. Si vuelve a quedar Activo, la fecha de retiro se borra; el historial conserva
+  la anterior.
 - La identificación es **única sin importar el tipo de documento**: quien pasa de T.I. a
   cédula con el mismo número conserva su registro.
 - Del cargo anterior se guarda solo el último, con sus fechas.
@@ -299,7 +303,7 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | POST | `/api/auth/login/` | Abre la sesión | Cualquiera |
 | POST | `/api/auth/logout/` | Cierra la sesión | Autenticado |
 | GET | `/api/auth/me/` | Usuario actual, perfil, alcance y columnas visibles (`readable_fields`) | Autenticado |
-| GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
+| GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to`, `retirement_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
