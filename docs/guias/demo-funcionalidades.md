@@ -159,7 +159,7 @@ Cada paso dice con qué cuenta hacerlo y qué debería pasar.
 - [ ] **TH** · Filtro Sexo = Femenino, o Categoría: todos los indicadores se recalculan.
 - [ ] **TH** · Vinculación por sexo: los aprendices van en su propia fila.
 - [ ] **TH** · "Ver tabla" en una gráfica; "PNG" la descarga como imagen; "Descargar
-  Excel" baja todos los indicadores.
+  Excel" baja todos los indicadores, una hoja por indicador con su nombre en español.
 - [ ] **SST** · No aparecen "Tipo de contratación por sexo" ni "Personal y salario por
   sección".
 - [ ] **Director / Líder** · Todo se calcula solo sobre su alcance.

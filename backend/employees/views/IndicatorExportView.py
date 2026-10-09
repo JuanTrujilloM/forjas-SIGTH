@@ -20,7 +20,7 @@ class IndicatorExportView(IndicatorView):
         workbook.remove(workbook.active)
 
         for indicator in result['indicators']:
-            sheet = workbook.create_sheet(indicator['key'][:31])
+            sheet = workbook.create_sheet(indicator['sheet'])
             sheet.append([indicator['title']])
             sheet['A1'].font = Font(bold=True, size=12)
             sheet.append([result['period']['label']])

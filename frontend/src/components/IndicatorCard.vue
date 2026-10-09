@@ -65,6 +65,15 @@ function isNumeric(value: string | number): boolean {
   return typeof value === 'number' || String(value).trim().startsWith('$')
 }
 
+const imageName = computed(() =>
+  props.indicator.title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, ''),
+)
+
 function downloadImage(): void {
   const image = chart.value?.toImage()
 
@@ -74,7 +83,7 @@ function downloadImage(): void {
 
   const link = document.createElement('a')
   link.href = image
-  link.download = `${props.indicator.key}.png`
+  link.download = `${imageName.value}.png`
   link.click()
 }
 </script>
