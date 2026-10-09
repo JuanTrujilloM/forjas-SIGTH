@@ -44,7 +44,6 @@ class CostCenterAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
     ordering = ['code']
 
 
-# read-only: an extension is registered from the frontend, which also moves the contract end date
 class ContractExtensionInline(EmployeePolicyAdminMixin, admin.TabularInline):
     model = ContractExtension
     extra = 0

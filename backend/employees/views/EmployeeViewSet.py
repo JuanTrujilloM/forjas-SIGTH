@@ -65,7 +65,6 @@ class EmployeeViewSet(
             if field.choices and field.name in readable
         })
 
-    # GET only serves the form that registers one, so it is as restricted as the POST
     @action(detail=True, methods=['get', 'post'], serializer_class=ContractExtensionRequestSerializer)
     def extensions(self, request: Request, pk: str | None = None) -> Response:
         employee = self.get_object()
