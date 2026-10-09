@@ -65,6 +65,11 @@ function isNumeric(value: string | number): boolean {
   return typeof value === 'number' || String(value).trim().startsWith('$')
 }
 
+const numericColumns = computed(() => {
+  const firstRow = table.value.rows[0] ?? []
+  return new Set(firstRow.flatMap((value, index) => (isNumeric(value) ? [index] : [])))
+})
+
 const imageName = computed(() =>
   props.indicator.title
     .normalize('NFD')
@@ -143,7 +148,12 @@ function downloadImage(): void {
         <table class="table table-sm small mb-0">
           <thead>
             <tr>
-              <th v-for="(column, index) in table.columns" :key="index" scope="col">
+              <th
+                v-for="(column, index) in table.columns"
+                :key="index"
+                scope="col"
+                :class="{ 'text-center': numericColumns.has(index) }"
+              >
                 {{ column }}
               </th>
             </tr>
@@ -153,7 +163,7 @@ function downloadImage(): void {
               <td
                 v-for="(value, index) in row"
                 :key="index"
-                :class="{ 'text-end': isNumeric(value) }"
+                :class="{ 'text-center': isNumeric(value) }"
               >
                 {{ value }}
               </td>
@@ -164,7 +174,7 @@ function downloadImage(): void {
               <td
                 v-for="(value, index) in table.totals"
                 :key="index"
-                :class="{ 'text-end': isNumeric(value) }"
+                :class="{ 'text-center': isNumeric(value) }"
               >
                 {{ value }}
               </td>
