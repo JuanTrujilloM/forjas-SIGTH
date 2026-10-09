@@ -121,7 +121,6 @@ class EmployeeViewSet(
 
         return response
 
-    # not "format": DRF reserves that query parameter to pick a renderer
     @action(detail=False, methods=['get'])
     def export(self, request: Request) -> HttpResponse:
         file_format = request.query_params.get('file_format', '')

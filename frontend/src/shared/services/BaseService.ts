@@ -29,7 +29,6 @@ export default class BaseService {
       link.click()
       URL.revokeObjectURL(link.href)
     } catch (error) {
-      // an error body arrives as a Blob too; parsed back so getApiErrorMessage can read it
       if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
         try {
           error.response.data = JSON.parse(await error.response.data.text())
