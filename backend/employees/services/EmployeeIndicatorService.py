@@ -21,7 +21,6 @@ APPRENTICE_CATEGORIES = {
     EmployeeCategory.PRODUCTION_APPRENTICE_AD,
 }
 
-# (from, up to but not including, label)
 AGE_RANGES = [(None, 18, 'Menor de 18'), (18, 26, '18 a 25'), (26, 36, '26 a 35'),
               (36, 46, '36 a 45'), (46, 56, '46 a 55'), (56, None, '56 o más')]
 
@@ -70,7 +69,6 @@ class EmployeeIndicatorService:
     def active(rows: list[dict]) -> list[dict]:
         return [row for row in rows if row['status'] == EmployeeStatus.ACTIVE]
 
-    # an indicator built on a column the profile cannot read would leak it in the aggregate
     @staticmethod
     def compute(
         readable: frozenset[str],

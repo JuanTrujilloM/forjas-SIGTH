@@ -14,7 +14,6 @@ from users.access import EmployeeFieldPolicy, EmployeeScopedMixin, EmployeeScope
 
 
 # main class
-# live rows come from get_queryset(); a past month comes from its cut, scoped as it was then
 class IndicatorView(EmployeeScopedMixin, GenericAPIView):
     queryset = Employee.objects.all()
     pagination_class = None
