@@ -1,6 +1,7 @@
 import BaseService from '@/shared/services/BaseService'
 import type {
   ContractExtension,
+  CostCenter,
   Employee,
   EmployeeChoices,
   EmployeeListItem,
@@ -15,6 +16,8 @@ export default class EmployeeService extends BaseService {
   private static API_URL: string = 'employees/'
 
   private static POSITIONS_URL: string = 'positions/'
+
+  private static COST_CENTERS_URL: string = 'cost-centers/'
 
   public static list(params: EmployeeListParams = {}): Promise<Page<EmployeeListItem>> {
     return super.axiosInstance
@@ -72,6 +75,12 @@ export default class EmployeeService extends BaseService {
   public static getPositions(): Promise<CatalogItem[]> {
     return super.axiosInstance
       .get<CatalogItem[]>(EmployeeService.POSITIONS_URL)
+      .then((response) => response.data)
+  }
+
+  public static getCostCenters(): Promise<CostCenter[]> {
+    return super.axiosInstance
+      .get<CostCenter[]>(EmployeeService.COST_CENTERS_URL)
       .then((response) => response.data)
   }
 }

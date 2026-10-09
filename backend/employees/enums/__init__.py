@@ -3,7 +3,6 @@ from .AdditionalRole import AdditionalRole
 from .Area import Area
 from .BloodType import BloodType
 from .ContractType import ContractType
-from .CostCenter import CostCenter
 from .EducationLevel import EducationLevel
 from .EmployeeCategory import EmployeeCategory
 from .EmployeeFieldGroup import EMPLOYEE_FIELD_GROUPS, EmployeeFieldGroup
@@ -27,7 +26,6 @@ __all__ = [
     'Area',
     'BloodType',
     'ContractType',
-    'CostCenter',
     'EMPLOYEE_FIELD_GROUPS',
     'EducationLevel',
     'EmployeeCategory',

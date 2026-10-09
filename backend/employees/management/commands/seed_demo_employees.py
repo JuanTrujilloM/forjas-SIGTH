@@ -19,7 +19,6 @@ from employees.enums import (
     Area,
     BloodType,
     ContractType,
-    CostCenter,
     EducationLevel,
     EmployeeCategory,
     EmployeeStatus,
@@ -36,7 +35,7 @@ from employees.enums import (
     SeveranceFund,
     Sex,
 )
-from employees.models import ContractExtension, Employee, Position
+from employees.models import ContractExtension, CostCenter, Employee, Position
 from employees.services import EmployeePhotoService
 from users.models import Division, Section
 
@@ -123,12 +122,12 @@ AREA_BY_DIVISION = {
 }
 
 COST_CENTERS_BY_AREA = {
-    Area.ADMON_51: [CostCenter.PCOFB20000, CostCenter.PCOFB20114, CostCenter.PCOFB20300],
-    Area.MOD_72: [CostCenter.PCOFB30200, CostCenter.PCOFB30201, CostCenter.PCOFB30202,
-                  CostCenter.PCOFB30203, CostCenter.PCOFB30205, CostCenter.PCOFB30206],
-    Area.CIF_73: [CostCenter.PCOFB30300, CostCenter.PCOFB30500, CostCenter.PCOFB30503],
-    Area.LOG_52: [CostCenter.PCOFB40100, CostCenter.PCOFB40400],
-    Area.VENTAS_52: [CostCenter.PCOFB50103, CostCenter.PCOFB50302, CostCenter.PCOFB50400],
+    Area.ADMON_51: ['PCOFB20000', 'PCOFB20114', 'PCOFB20300'],
+    Area.MOD_72: ['PCOFB30200', 'PCOFB30201', 'PCOFB30202', 'PCOFB30203', 'PCOFB30205',
+                  'PCOFB30206'],
+    Area.CIF_73: ['PCOFB30300', 'PCOFB30500', 'PCOFB30503'],
+    Area.LOG_52: ['PCOFB40100', 'PCOFB40400'],
+    Area.VENTAS_52: ['PCOFB50103', 'PCOFB50302', 'PCOFB50400'],
 }
 
 OPERATIVE_CATEGORY = {
@@ -238,6 +237,7 @@ class Command(BaseCommand):
     def _create_roster(self) -> list[Employee]:
         divisions = {division.name: division for division in Division.objects.all()}
         sections = {section.name: section for section in Section.objects.all()}
+        self.cost_centers = {center.code: center for center in CostCenter.objects.all()}
         positions = {
             name: Position.objects.get_or_create(name=name)[0]
             for name in {row[1] for row in ROSTER}
@@ -372,7 +372,7 @@ class Command(BaseCommand):
             previous_position_end_date=previous_end,
             is_leader=role in ('executive', 'director', 'leader'),
             section=section,
-            cost_center=rnd.choice(COST_CENTERS_BY_AREA[area]),
+            cost_center=self.cost_centers[rnd.choice(COST_CENTERS_BY_AREA[area])],
             area=area,
             additional_role=self._additional_role(role, section.name),
             immediate_boss=boss,

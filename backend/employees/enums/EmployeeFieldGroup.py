@@ -57,6 +57,8 @@ EMPLOYEE_FIELD_GROUPS: dict[EmployeeFieldGroup, frozenset[str]] = {
         'section',
         'section_name',
         'cost_center',
+        'cost_center_code',
+        'cost_center_name',
         'area',
         'additional_role',
         'immediate_boss',

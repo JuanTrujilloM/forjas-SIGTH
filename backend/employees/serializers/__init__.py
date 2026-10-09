@@ -1,5 +1,6 @@
 # internal application code imports
 from .ContractExtensionSerializer import ContractExtensionSerializer
+from .CostCenterSerializer import CostCenterSerializer
 from .EmployeeListSerializer import EmployeeListSerializer
 from .EmployeePhotoSerializer import EmployeePhotoSerializer
 from .EmployeePhotoUrlField import EmployeePhotoUrlField
@@ -8,6 +9,7 @@ from .PositionSerializer import PositionSerializer
 
 __all__ = [
     'ContractExtensionSerializer',
+    'CostCenterSerializer',
     'EmployeeListSerializer',
     'EmployeePhotoSerializer',
     'EmployeePhotoUrlField',

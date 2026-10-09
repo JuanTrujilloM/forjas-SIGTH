@@ -102,6 +102,10 @@ function rowsOf(current: Employee, block: EmployeeBlock): EmployeeInfoRow[] {
     if (field.name === 'contract_end_date') {
       rows.push(plainRow('Vencimiento mes/año', formatMonthAndYear(current.contract_end_date)))
     }
+
+    if (field.name === 'cost_center' && 'cost_center_name' in current) {
+      rows.push(plainRow('Nombre centro de costos', current.cost_center_name ?? '—'))
+    }
   }
 
   return rows
@@ -165,6 +169,8 @@ function formatField(current: Employee, field: EmployeeFieldSpec): string {
       return (
         (field.name === 'position' ? current.position_name : current.previous_position_name) ?? '—'
       )
+    case 'costCenter':
+      return current.cost_center_code ?? '—'
     case 'boss':
       return current.immediate_boss_name ?? '—'
     case 'computed':

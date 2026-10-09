@@ -3,7 +3,7 @@ from django.contrib import admin
 from simple_history.admin import SimpleHistoryAdmin
 
 # internal application code imports
-from employees.models import ContractExtension, Employee, Position
+from employees.models import ContractExtension, CostCenter, Employee, Position
 from users.access import EmployeeFieldPolicy
 
 
@@ -34,6 +34,14 @@ class PositionAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
     list_filter = ['is_active']
     search_fields = ['name']
     ordering = ['name']
+
+
+@admin.register(CostCenter)
+class CostCenterAdmin(EmployeePolicyAdminMixin, admin.ModelAdmin):
+    list_display = ['code', 'name', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['code', 'name']
+    ordering = ['code']
 
 
 class ContractExtensionInline(EmployeePolicyAdminMixin, admin.TabularInline):

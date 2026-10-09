@@ -22,6 +22,12 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
     division_name = serializers.CharField(source='division.name', read_only=True, default=None)
     section_name = serializers.CharField(source='section.name', read_only=True, default=None)
     position_name = serializers.CharField(source='position.name', read_only=True, default=None)
+    cost_center_code = serializers.CharField(
+        source='cost_center.code', read_only=True, default=None
+    )
+    cost_center_name = serializers.CharField(
+        source='cost_center.name', read_only=True, default=None
+    )
     previous_position_name = serializers.CharField(
         source='previous_position.name', read_only=True, default=None
     )
@@ -69,6 +75,8 @@ class EmployeeSerializer(EmployeeFieldsMixin, serializers.ModelSerializer):
             'section',
             'section_name',
             'cost_center',
+            'cost_center_code',
+            'cost_center_name',
             'area',
             'additional_role',
             'immediate_boss',
