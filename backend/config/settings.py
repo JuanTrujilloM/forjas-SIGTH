@@ -124,6 +124,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 25,
+    'EXCEPTION_HANDLER': 'config.exception_handler.exception_handler',
     # 0 ignores X-Forwarded-For, which a client could forge to dodge the per-IP login limit
     'NUM_PROXIES': config('NUM_PROXIES', default=0, cast=int),
 }
