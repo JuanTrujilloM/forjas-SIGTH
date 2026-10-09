@@ -25,8 +25,7 @@ cd backend; .venv\Scripts\python.exe manage.py seed_demo
 3. **Cortes mensuales** (`seed_demo_cuts --replace`): los 12 meses anteriores al actual,
    aproximados con las fechas de ingreso y retiro.
 
-Se puede correr las veces que haga falta: borra lo que creó la vez anterior, también las
-descargas registradas por las cuentas de demostración. Con la misma `--seed` (2026 por
+Se puede correr las veces que haga falta: borra lo que creó la vez anterior. Con la misma `--seed` (2026 por
 defecto) salen los mismos empleados; las fechas se calculan respecto al día en que se
 corre, así que siempre hay ingresos, retiros y vencimientos "de este mes".
 
@@ -146,8 +145,6 @@ Cada paso dice con qué cuenta hacerlo y qué debería pasar.
 - [ ] **SST** · En Campos no aparecen Salario, Contrato ni Observaciones; los filtros
   de contrato y vencimiento tampoco.
 - [ ] **Director** · Cualquier reporte trae solo su dirección.
-- [ ] **TI o TH** · Admin → Descargas de empleados: cada descarga con usuario, filtros,
-  campos y filas.
 - [ ] **TH** · Desde el listado con filtros puestos, "Exportar" abre Reportes con esos
   mismos filtros.
 
@@ -162,7 +159,7 @@ Cada paso dice con qué cuenta hacerlo y qué debería pasar.
 - [ ] **TH** · Filtro Sexo = Femenino, o Categoría: todos los indicadores se recalculan.
 - [ ] **TH** · Vinculación por sexo: los aprendices van en su propia fila.
 - [ ] **TH** · "Ver tabla" en una gráfica; "PNG" la descarga como imagen; "Descargar
-  Excel" baja todos los indicadores (queda en las descargas registradas).
+  Excel" baja todos los indicadores.
 - [ ] **SST** · No aparecen "Tipo de contratación por sexo" ni "Personal y salario por
   sección".
 - [ ] **Director / Líder** · Todo se calcula solo sobre su alcance.
@@ -173,8 +170,8 @@ Cada paso dice con qué cuenta hacerlo y qué debería pasar.
 - [ ] **TH** · Centros de costos: cambiar un nombre; se ve en la ficha.
 - [ ] **TH** · En un empleado, las prórrogas se ven pero no se pueden agregar ni editar
   (se registran desde la ficha).
-- [ ] **TI** · Entra y ve empleados, cortes mensuales, envíos de vencimientos y
-  descargas, todo en solo lectura.
+- [ ] **TI** · Entra y ve empleados, cortes mensuales y envíos de
+  vencimientos, todo en solo lectura.
 
 ### 4.7 Corte mensual programado
 
