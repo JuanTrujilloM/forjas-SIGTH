@@ -1,5 +1,7 @@
 # external libraries imports
+from django.db.models import Count
 from django.http import Http404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -13,14 +15,16 @@ from rest_framework.response import Response
 from employees.filters import EmployeeFilterSet
 from employees.models import Employee
 from employees.serializers import (
+    ContractAlertSerializer,
     ContractExtensionRequestSerializer,
     ContractExtensionSerializer,
     EmployeeListSerializer,
     EmployeePhotoSerializer,
     EmployeeSerializer,
 )
-from employees.services import ContractExtensionService, EmployeePhotoService
+from employees.services import ContractAlertService, ContractExtensionService, EmployeePhotoService
 from users.access import (
+    ContractAlertPermission,
     EmployeeFieldOrderingFilter,
     EmployeeFieldPolicy,
     EmployeeFieldSearchFilter,
@@ -64,6 +68,24 @@ class EmployeeViewSet(
             for field in Employee._meta.concrete_fields
             if field.choices and field.name in readable
         })
+
+    @action(
+        detail=False,
+        methods=['get'],
+        url_path='contract-alerts',
+        pagination_class=None,
+        permission_classes=[IsAuthenticated, ContractAlertPermission],
+    )
+    def contract_alerts(self, request: Request) -> Response:
+        employees = ContractAlertService.pending(
+            self.get_queryset(), timezone.localdate()
+        ).annotate(extension_count=Count('extensions'))
+
+        serializer = ContractAlertSerializer(
+            employees, many=True, context=self.get_serializer_context()
+        )
+
+        return Response(serializer.data)
 
     @action(detail=True, methods=['get', 'post'], serializer_class=ContractExtensionRequestSerializer)
     def extensions(self, request: Request, pk: str | None = None) -> Response:

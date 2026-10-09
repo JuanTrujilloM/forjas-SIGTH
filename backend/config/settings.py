@@ -153,6 +153,20 @@ CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
 
 CORS_ALLOW_CREDENTIALS = True
 
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if EMAIL_HOST
+    else 'django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='sigth@localhost')
+
+FRONTEND_BASE_URL = config('FRONTEND_BASE_URL', default='').rstrip('/')
+
 # DEBUG defaults to False, so a server with a misconfigured .env stays in the safe mode
 if DEBUG:
     # browsable API only in development: it renders employee data as HTML

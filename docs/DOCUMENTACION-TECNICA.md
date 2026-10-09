@@ -311,6 +311,7 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to`, `retirement_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
+| GET | `/api/employees/contract-alerts/` | Activos cuyo contrato vence en 50 días o menos, y los ya vencidos, con los días que faltan | Solo Talento Humano |
 | GET | `/api/employees/choices/` | Listas de valores de los campos visibles | Autenticado |
 | GET | `/api/employees/{id}/extensions/` | Nueva fecha de vencimiento sugerida por la regla legal | Solo Talento Humano |
 | POST | `/api/employees/{id}/extensions/` | Registrar una prórroga con su nueva fecha de vencimiento (`new_contract_end_date`): crea la prórroga, que rige desde el día siguiente al vencimiento anterior, y actualiza el vencimiento | Solo Talento Humano |
@@ -327,6 +328,7 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | `/` → `/empleados` | Lista de empleados (inicio) | Autenticado |
 | `/empleados/:id` | Ficha del empleado | Autenticado |
 | `/empleados/nuevo` · `/empleados/:id/editar` | Formulario de empleado | Solo Talento Humano (el backend lo vuelve a validar) |
+| `/vencimientos` | Vencimientos de contrato: activos que vencen en 50 días o menos y los ya vencidos | Solo Talento Humano |
 
 ---
 
@@ -460,6 +462,9 @@ de `develop` y vuelve a `develop`. Los commits siguen *conventional commits* en 
 | `NUM_PROXIES` | Proxies inversos delante de Django; de ahí sale la IP del límite de intentos | Los que monte TI; `0` si Django recibe las peticiones directo |
 | `MEDIA_ROOT` | Carpeta de las fotos | Carpeta fuera del código, respaldada, **nunca servida por el servidor web** |
 | `DEMO_USERS_PASSWORD` | Contraseña de las cuentas de demostración | **Vacío** |
+| `EMAIL_HOST` · `EMAIL_PORT` · `EMAIL_HOST_USER` · `EMAIL_HOST_PASSWORD` · `EMAIL_USE_TLS` | Servidor de correo (SMTP) para el aviso diario de vencimientos. Sin `EMAIL_HOST`, el correo se imprime en la consola | Los del servidor de correo de la empresa |
+| `DEFAULT_FROM_EMAIL` | Remitente de los correos del SIGTH | Un buzón del dominio corporativo |
+| `FRONTEND_BASE_URL` | Dirección pública del frontend, para los enlaces de los correos | `https://<dominio>` |
 
 `frontend/.env` (se incrusta en el build como texto plano, así que **nunca lleva
 secretos**):
@@ -510,6 +515,7 @@ la versión nueva traía migraciones, revertirlas con `python manage.py migrate 
 | Respaldo de `MEDIA_ROOT` | Igual que la base | TI | Copia de la carpeta de fotos |
 | Alta y baja de cuentas | Cuando alguien entra o sale | TI | §10.2 |
 | Completar el catálogo de cargos | Cuando aparece un cargo nuevo | Talento Humano | Admin → Cargos |
+| Aviso de vencimientos de contrato | **Diaria**, por la mañana (propuesta: 6:00) | TI lo programa (cron o Programador de tareas) | `python manage.py send_contract_alerts`. Si ya salió ese día no lo repite; `--force` lo reenvía. Cada envío queda en Admin → Envíos de vencimientos |
 | Poner o cambiar el nombre de un centro de costos | Al arrancar (los 21 vienen con el código como nombre) o cuando Contabilidad crea o renombra uno | Talento Humano | Admin → Centros de costos |
 
 ### 10.2 Administración de cuentas

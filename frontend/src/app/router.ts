@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { useSessionStore } from '@/stores/session'
+import ContractAlertsView from '@/views/ContractAlertsView.vue'
 import EmployeeDetailView from '@/views/EmployeeDetailView.vue'
 import EmployeeFormView from '@/views/EmployeeFormView.vue'
 import EmployeeListView from '@/views/EmployeeListView.vue'
@@ -34,6 +35,12 @@ const routes = [
     component: EmployeeFormView,
     meta: { requiresAuth: true, requiresEditor: true },
   },
+  {
+    path: '/vencimientos',
+    name: 'contract-alerts',
+    component: ContractAlertsView,
+    meta: { requiresAuth: true, requiresContractAlerts: true },
+  },
 ]
 
 const router = createRouter({
@@ -59,6 +66,10 @@ router.beforeEach(async (to) => {
 
   // interface convenience only: the backend refuses the write anyway
   if (to.meta.requiresEditor && !session.user?.can_edit_employees) {
+    return { name: 'employees' }
+  }
+
+  if (to.meta.requiresContractAlerts && !session.user?.can_view_contract_alerts) {
     return { name: 'employees' }
   }
 
