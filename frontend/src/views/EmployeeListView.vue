@@ -129,13 +129,22 @@ onMounted(() => {
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <h1 class="h3 mb-0">Empleados</h1>
 
-      <RouterLink
-        v-if="session.user?.can_edit_employees"
-        class="btn btn-accent"
-        :to="{ name: 'employee-create' }"
-      >
-        Nuevo empleado
-      </RouterLink>
+      <div class="d-flex gap-2">
+        <RouterLink
+          v-if="hasProfile"
+          class="btn btn-outline-primary"
+          :to="{ name: 'reports', query: route.query }"
+        >
+          Exportar
+        </RouterLink>
+        <RouterLink
+          v-if="session.user?.can_edit_employees"
+          class="btn btn-accent"
+          :to="{ name: 'employee-create' }"
+        >
+          Nuevo empleado
+        </RouterLink>
+      </div>
     </div>
 
     <div v-if="!hasProfile" class="alert alert-secondary" role="status">
