@@ -6,7 +6,6 @@ from rest_framework.views import exception_handler as drf_exception_handler
 
 
 # main code
-# Django's 404 text is in English and names the model; NotFound's default detail is translated
 def exception_handler(exc: Exception, context: dict) -> Response | None:
     if isinstance(exc, Http404):
         exc = NotFound()
