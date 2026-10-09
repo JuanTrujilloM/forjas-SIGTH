@@ -153,7 +153,6 @@ CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
 
 CORS_ALLOW_CREDENTIALS = True
 
-# without an SMTP host the daily contract alert is printed to the console instead of sent
 EMAIL_HOST = config('EMAIL_HOST', default='')
 EMAIL_BACKEND = (
     'django.core.mail.backends.smtp.EmailBackend'
