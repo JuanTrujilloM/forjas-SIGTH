@@ -1,6 +1,6 @@
 import BaseService from '@/shared/services/BaseService'
 import type {
-  ContractExtension,
+  ContractExtensionSuggestion,
   CostCenter,
   Employee,
   EmployeeChoices,
@@ -9,6 +9,7 @@ import type {
   EmployeePayload,
   EmployeePhotoResponse,
   Page,
+  RegisteredContractExtension,
 } from '@/types/employee.types'
 import type { CatalogItem } from '@/types/organization.types'
 
@@ -43,10 +44,19 @@ export default class EmployeeService extends BaseService {
       .then((response) => response.data)
   }
 
-  public static addExtension(id: number, extensionDate: string): Promise<ContractExtension> {
+  public static getExtensionSuggestion(id: number): Promise<ContractExtensionSuggestion> {
     return super.axiosInstance
-      .post<ContractExtension>(`${EmployeeService.API_URL}${id}/extensions/`, {
-        extension_date: extensionDate,
+      .get<ContractExtensionSuggestion>(`${EmployeeService.API_URL}${id}/extensions/`)
+      .then((response) => response.data)
+  }
+
+  public static addExtension(
+    id: number,
+    newContractEndDate: string,
+  ): Promise<RegisteredContractExtension> {
+    return super.axiosInstance
+      .post<RegisteredContractExtension>(`${EmployeeService.API_URL}${id}/extensions/`, {
+        new_contract_end_date: newContractEndDate,
       })
       .then((response) => response.data)
   }

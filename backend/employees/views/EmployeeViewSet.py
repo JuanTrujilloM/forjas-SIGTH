@@ -3,6 +3,7 @@ from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -12,12 +13,13 @@ from rest_framework.response import Response
 from employees.filters import EmployeeFilterSet
 from employees.models import Employee
 from employees.serializers import (
+    ContractExtensionRequestSerializer,
     ContractExtensionSerializer,
     EmployeeListSerializer,
     EmployeePhotoSerializer,
     EmployeeSerializer,
 )
-from employees.services import EmployeePhotoService
+from employees.services import ContractExtensionService, EmployeePhotoService
 from users.access import (
     EmployeeFieldOrderingFilter,
     EmployeeFieldPolicy,
@@ -63,13 +65,33 @@ class EmployeeViewSet(
             if field.choices and field.name in readable
         })
 
-    @action(detail=True, methods=['post'], serializer_class=ContractExtensionSerializer)
+    @action(detail=True, methods=['get', 'post'], serializer_class=ContractExtensionRequestSerializer)
     def extensions(self, request: Request, pk: str | None = None) -> Response:
-        serializer = ContractExtensionSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(employee=self.get_object())
+        employee = self.get_object()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if not EmployeeFieldPolicy.can_write(request.user):
+            raise PermissionDenied('Solo Talento Humano puede registrar prórrogas.')
+
+        if request.method == 'GET':
+            return Response({
+                'suggested_end_date': ContractExtensionService.suggest_end_date(employee),
+            })
+
+        serializer = ContractExtensionRequestSerializer(
+            data=request.data, context={'employee': employee}
+        )
+        serializer.is_valid(raise_exception=True)
+        extension = ContractExtensionService.register(
+            employee, serializer.validated_data['new_contract_end_date']
+        )
+
+        return Response(
+            {
+                **ContractExtensionSerializer(extension).data,
+                'contract_end_date': employee.contract_end_date,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(
         detail=True,

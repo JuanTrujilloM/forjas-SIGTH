@@ -22,6 +22,14 @@ export interface ContractExtension {
   extension_date: string
 }
 
+export interface RegisteredContractExtension extends ContractExtension {
+  contract_end_date: string
+}
+
+export interface ContractExtensionSuggestion {
+  suggested_end_date: string | null
+}
+
 export interface EmployeeListItem {
   id: number
   status: string

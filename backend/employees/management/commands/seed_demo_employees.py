@@ -547,7 +547,9 @@ class Command(BaseCommand):
         renewals = 0
 
         while end < self.today:
-            ContractExtension.objects.create(employee=employee, extension_date=end)
+            ContractExtension.objects.create(
+                employee=employee, extension_date=end + timedelta(days=1)
+            )
             renewals += 1
             end = add_months(end, 12 if renewals >= 3 else months)
 
