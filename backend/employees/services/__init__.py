@@ -3,6 +3,7 @@ from .ContractAlertService import ContractAlertService
 from .ContractExtensionService import ContractExtensionService
 from .EmployeeExportColumn import EmployeeExportColumn
 from .EmployeeExportService import EmployeeExportService
+from .EmployeeIndicatorService import EmployeeIndicatorService
 from .EmployeePhotoPath import EmployeePhotoPath
 from .EmployeePhotoService import EmployeePhotoService
 from .EmployeeRowService import EmployeeRowService
@@ -13,6 +14,7 @@ __all__ = [
     'ContractExtensionService',
     'EmployeeExportColumn',
     'EmployeeExportService',
+    'EmployeeIndicatorService',
     'EmployeePhotoPath',
     'EmployeePhotoService',
     'EmployeeRowService',

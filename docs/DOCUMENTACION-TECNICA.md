@@ -76,8 +76,15 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
   vista previa y descarga en Excel, CSV o PDF, con reportes listos (ingresos y retiros
   del mes, por dirección, por líder y por sección). Cada descarga queda registrada.
 
-**Aún no construido**: los indicadores con gráficas. La carga inicial de los datos reales
-la hace TI.
+- **Analítica de Talento Humano** (`/analitica`): resumen (activos, ingresos, retiros y
+  variación frente a otro mes), evolución mensual y anual de los activos, distribución
+  por categoría, dirección, sección y cargo, cruces por sexo (dirección, vinculación con
+  los aprendices aparte, tipo de contratación y edad), antigüedad, pacto colectivo,
+  personal y salario por sección, y cumpleaños del mes. Se filtra por periodo, dirección,
+  sección, área, sexo, vinculación y categoría; cada gráfica se ve también como tabla y
+  se descarga como imagen, y el conjunto se descarga en Excel.
+
+La carga inicial de los datos reales la hace TI.
 
 ### 1.3 Objetivos de calidad
 
@@ -321,6 +328,8 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to`, `retirement_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
+| GET | `/api/indicators/?period=…&compare=…` | Indicadores de la analítica sobre el alcance del perfil; un periodo pasado sale de su corte. Un indicador hecho con una columna que el perfil no ve no se calcula | Autenticado, recortado por perfil |
+| GET | `/api/indicators/export/` | Los mismos indicadores en Excel, una hoja por indicador; queda en el registro de descargas | Autenticado, recortado por perfil |
 | GET | `/api/monthly-cuts/` | Cortes mensuales disponibles | Autenticado |
 | GET | `/api/monthly-cuts/{id}/employees/` | Empleados de un corte, con búsqueda y filtros de estado, dirección y sección | Autenticado, recortado por perfil con la dirección y la sección de ese mes |
 | POST | `/api/monthly-cuts/{id}/retake/` | Rehacer el último corte con los datos de hoy | Solo Talento Humano |
@@ -348,6 +357,7 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | `/empleados/:id` | Ficha del empleado | Autenticado |
 | `/empleados/nuevo` · `/empleados/:id/editar` | Formulario de empleado | Solo Talento Humano (el backend lo vuelve a validar) |
 | `/reportes` | Reportes y consultas | Autenticado |
+| `/analitica` | Analítica de Talento Humano: indicadores y gráficas | Autenticado |
 | `/vencimientos` | Vencimientos de contrato: activos que vencen en 50 días o menos y los ya vencidos | Solo Talento Humano |
 
 ---

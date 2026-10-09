@@ -6,6 +6,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CostCenterViewSet,
     EmployeeViewSet,
+    IndicatorExportView,
+    IndicatorView,
     MonthlyCutEmployeeViewSet,
     MonthlyCutViewSet,
     PositionViewSet,
@@ -25,4 +27,6 @@ urlpatterns = [
         MonthlyCutEmployeeViewSet.as_view({'get': 'list'}),
         name='employees.monthly_cut_employees',
     ),
+    path('indicators/', IndicatorView.as_view(), name='employees.indicators'),
+    path('indicators/export/', IndicatorExportView.as_view(), name='employees.indicators_export'),
 ]

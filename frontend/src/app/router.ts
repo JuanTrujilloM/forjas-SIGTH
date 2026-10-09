@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { useSessionStore } from '@/stores/session'
+import AnalyticsView from '@/views/AnalyticsView.vue'
 import ContractAlertsView from '@/views/ContractAlertsView.vue'
 import EmployeeDetailView from '@/views/EmployeeDetailView.vue'
 import EmployeeFormView from '@/views/EmployeeFormView.vue'
@@ -54,6 +55,12 @@ const routes = [
     path: '/reportes',
     name: 'reports',
     component: ReportsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/analitica',
+    name: 'analytics',
+    component: AnalyticsView,
     meta: { requiresAuth: true },
   },
   {

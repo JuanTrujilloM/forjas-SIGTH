@@ -17,6 +17,6 @@ export default class ReportService extends BaseService {
   }
 
   public static download(fileFormat: ReportFileFormat, params: ReportParams): Promise<void> {
-    return super.download(`${ReportService.API_URL}export/`, { ...params, file_format: fileFormat })
+    return super.downloadFile(`${ReportService.API_URL}export/`, { ...params, file_format: fileFormat })
   }
 }

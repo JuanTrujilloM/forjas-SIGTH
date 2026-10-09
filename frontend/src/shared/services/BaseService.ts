@@ -14,7 +14,7 @@ export default class BaseService {
     })
   }
 
-  public static async download(url: string, params: object): Promise<void> {
+  public static async downloadFile(url: string, params: object): Promise<void> {
     try {
       const response = await BaseService.axiosInstance.get<Blob>(url, {
         params,
