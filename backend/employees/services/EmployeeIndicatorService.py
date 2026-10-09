@@ -79,11 +79,12 @@ class EmployeeIndicatorService:
         compare: tuple[date, list[dict]] | None,
     ) -> list[dict]:
         context = {'on': on, 'history': history, 'compare': compare}
+        month = MONTHS[on.month - 1]
         indicators = [
             {
                 'key': indicator.key,
-                'title': indicator.title,
-                'sheet': indicator.sheet,
+                'title': indicator.title.format(month=month),
+                'sheet': indicator.sheet.format(month=month),
                 'kind': indicator.kind,
                 'data': indicator.compute(rows, context),
             }
@@ -335,7 +336,7 @@ INDICATORS = [
     Indicator('section_salary', 'Personal y salario por sección', 'Salario por sección', 'table',
               frozenset({'status', 'section_name', 'division_name', 'current_salary'}),
               _section_salary),
-    Indicator('birthdays', 'Cumpleaños del mes', 'Cumpleaños del mes', 'list',
+    Indicator('birthdays', 'Cumpleaños del mes de {month}', 'Cumpleaños de {month}', 'list',
               frozenset({'status', 'birth_date', 'full_name', 'position_name', 'section_name'}),
               _birthdays),
 ]
