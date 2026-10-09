@@ -12,6 +12,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 # internal application code imports
+from employees.enums import EmployeeStatus
 from employees.filters import EmployeeFilterSet
 from employees.models import Employee
 from employees.serializers import (
@@ -21,6 +22,7 @@ from employees.serializers import (
     EmployeeListSerializer,
     EmployeePhotoSerializer,
     EmployeeSerializer,
+    OrgChartSerializer,
 )
 from employees.services import ContractAlertService, ContractExtensionService, EmployeePhotoService
 from users.access import (
@@ -82,6 +84,15 @@ class EmployeeViewSet(
         ).annotate(extension_count=Count('extensions'))
 
         serializer = ContractAlertSerializer(
+            employees, many=True, context=self.get_serializer_context()
+        )
+
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='org-chart', pagination_class=None)
+    def org_chart(self, request: Request) -> Response:
+        employees = self.get_queryset().filter(status=EmployeeStatus.ACTIVE).order_by('full_name')
+        serializer = OrgChartSerializer(
             employees, many=True, context=self.get_serializer_context()
         )
 

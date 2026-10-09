@@ -164,3 +164,16 @@ export interface ContractAlert {
   days_until_contract_end: number
   extension_count: number
 }
+
+export interface OrgChartEmployee {
+  id: number
+  full_name: string
+  photo_thumbnail?: string | null
+  division: number | null
+  division_name: string | null
+  section: number | null
+  section_name: string | null
+  position_name: string | null
+  immediate_boss: number | null
+  immediate_boss_name: string | null
+}

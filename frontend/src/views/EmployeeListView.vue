@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import AppHeader from '@/components/AppHeader.vue'
+import DirectoryTabs from '@/components/DirectoryTabs.vue'
 import EmployeeService from '@/services/EmployeeService'
 import OrganizationService from '@/services/OrganizationService'
 import { formatChoice } from '@/shared/employees/employeeFormat'
@@ -123,6 +124,8 @@ onMounted(() => {
   <AppHeader />
 
   <main class="container py-4">
+    <DirectoryTabs />
+
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <h1 class="h3 mb-0">Empleados</h1>
 

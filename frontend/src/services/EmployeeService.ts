@@ -9,6 +9,7 @@ import type {
   EmployeeListParams,
   EmployeePayload,
   EmployeePhotoResponse,
+  OrgChartEmployee,
   Page,
   RegisteredContractExtension,
 } from '@/types/employee.types'
@@ -42,6 +43,12 @@ export default class EmployeeService extends BaseService {
   public static update(id: number, payload: EmployeePayload): Promise<Employee> {
     return super.axiosInstance
       .patch<Employee>(`${EmployeeService.API_URL}${id}/`, payload)
+      .then((response) => response.data)
+  }
+
+  public static getOrgChart(): Promise<OrgChartEmployee[]> {
+    return super.axiosInstance
+      .get<OrgChartEmployee[]>(`${EmployeeService.API_URL}org-chart/`)
       .then((response) => response.data)
   }
 
