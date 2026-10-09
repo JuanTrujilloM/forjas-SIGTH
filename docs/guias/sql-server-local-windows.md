@@ -3,9 +3,8 @@
 Cómo se montó el SQL Server de desarrollo en un PC con Windows, y los comandos del
 día a día. Es el equivalente de [`sql-server-local.md`](sql-server-local.md), que
 documenta el mismo montaje en macOS; lo que cambia entre los dos está señalado. La
-base de producción todavía no está definida (pendiente 2 de la
-[documentación técnica](../DOCUMENTACION-TECNICA.md#12-riesgos-deuda-técnica-y-pendientes)): lo de acá replica lo que se espera
-encontrar allá, no lo confirmado.
+base de producción todavía no está definida (la define TI): lo de acá replica lo que se
+espera encontrar allá, no lo confirmado.
 
 ---
 

@@ -124,4 +124,9 @@ export interface EmployeeListParams {
   status?: string
   division?: number
   section?: number
+  hire_date_from?: string
+  hire_date_to?: string
+  contract_end_date_from?: string
+  contract_end_date_to?: string
+  ordering?: string
 }
