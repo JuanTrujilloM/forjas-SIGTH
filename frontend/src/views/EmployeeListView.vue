@@ -5,8 +5,9 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import DirectoryTabs from '@/components/DirectoryTabs.vue'
 import EmployeeService from '@/services/EmployeeService'
+import MonthlyCutService from '@/services/MonthlyCutService'
 import OrganizationService from '@/services/OrganizationService'
-import { formatChoice } from '@/shared/employees/employeeFormat'
+import { formatChoice, formatDate, formatMonthAndYear } from '@/shared/employees/employeeFormat'
 import {
   emptyFilters,
   filtersFromQuery,
@@ -17,7 +18,7 @@ import {
 } from '@/shared/employees/employeeListQuery'
 import BaseService from '@/shared/services/BaseService'
 import { useSessionStore } from '@/stores/session'
-import type { EmployeeChoices, EmployeeListItem, Page } from '@/types/employee.types'
+import type { EmployeeChoices, EmployeeListItem, MonthlyCut, Page } from '@/types/employee.types'
 import type { CatalogItem } from '@/types/organization.types'
 
 const session = useSessionStore()
@@ -31,6 +32,8 @@ const page = ref<Page<EmployeeListItem> | null>(null)
 const choices = ref<EmployeeChoices>({})
 const divisions = ref<CatalogItem[]>([])
 const sections = ref<CatalogItem[]>([])
+const cuts = ref<MonthlyCut[]>([])
+const isRetaking = ref(false)
 
 const filters = ref(filtersFromQuery(route.query))
 const currentPage = ref(pageFromQuery(route.query))
@@ -39,6 +42,12 @@ const isLoading = ref(false)
 const errorMessage = ref<string | null>(null)
 
 const canFilterByContractEnd = computed(() => session.canRead('contract_end_date'))
+
+// a cut that no longer exists in the address bar falls back to the current data
+const selectedCut = computed(() => cuts.value.find((cut) => cut.cut_date === filters.value.cut))
+const canRetakeCut = computed(
+  () => Boolean(session.user?.can_edit_employees) && selectedCut.value?.id === cuts.value[0]?.id,
+)
 const isFiltered = computed(() => hasActiveFilters(filters.value))
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined
@@ -49,10 +58,17 @@ async function loadEmployees(): Promise<void> {
   errorMessage.value = null
 
   try {
-    page.value = await EmployeeService.list({
-      ...filtersToParams(filters.value),
-      page: currentPage.value,
-    })
+    const params = { ...filtersToParams(filters.value), page: currentPage.value }
+
+    page.value = selectedCut.value
+      ? await MonthlyCutService.getEmployees(selectedCut.value.id, {
+          page: params.page,
+          search: params.search,
+          status: params.status,
+          division: params.division,
+          section: params.section,
+        })
+      : await EmployeeService.list(params)
   } catch (error) {
     errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo cargar la lista.')
   } finally {
@@ -62,10 +78,11 @@ async function loadEmployees(): Promise<void> {
 
 async function loadFilters(): Promise<void> {
   try {
-    ;[choices.value, divisions.value, sections.value] = await Promise.all([
+    ;[choices.value, divisions.value, sections.value, cuts.value] = await Promise.all([
       EmployeeService.getChoices(),
       OrganizationService.getDivisions(),
       OrganizationService.getSections(),
+      MonthlyCutService.list(),
     ])
   } catch (error) {
     errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudieron cargar los filtros.')
@@ -80,6 +97,35 @@ function goToPage(target: number): void {
 
 function clearFilters(): void {
   filters.value = emptyFilters()
+}
+
+async function retakeCut(): Promise<void> {
+  const cut = selectedCut.value
+
+  if (!cut) {
+    return
+  }
+
+  const confirmed = window.confirm(
+    `¿Rehacer el corte al ${formatDate(cut.cut_date)} con los datos de hoy? ` +
+      'Reemplaza lo que guardó el corte de ese mes.',
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  isRetaking.value = true
+  errorMessage.value = null
+
+  try {
+    await MonthlyCutService.retake(cut.id)
+    await loadEmployees()
+  } catch (error) {
+    errorMessage.value = BaseService.getApiErrorMessage(error, 'No se pudo rehacer el corte.')
+  } finally {
+    isRetaking.value = false
+  }
 }
 
 watch(
@@ -115,8 +161,8 @@ onMounted(() => {
     return
   }
 
-  loadFilters()
-  loadEmployees()
+  // the cuts must be known before the first load, or a month in the address bar is ignored
+  loadFilters().then(loadEmployees)
 })
 </script>
 
@@ -131,7 +177,7 @@ onMounted(() => {
 
       <div class="d-flex gap-2">
         <RouterLink
-          v-if="hasProfile"
+          v-if="hasProfile && !selectedCut"
           class="btn btn-outline-primary"
           :to="{ name: 'reports', query: route.query }"
         >
@@ -189,7 +235,17 @@ onMounted(() => {
         </select>
       </div>
 
-      <div class="col-12 col-lg-5">
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label class="visually-hidden" for="cut">Mes</label>
+        <select id="cut" v-model="filters.cut" class="form-select">
+          <option value="">Datos actuales</option>
+          <option v-for="cut in cuts" :key="cut.id" :value="cut.cut_date">
+            Corte de {{ formatMonthAndYear(cut.cut_date) }}
+          </option>
+        </select>
+      </div>
+
+      <div v-if="!selectedCut" class="col-12 col-lg-4">
         <div class="input-group">
           <span class="input-group-text">Ingreso</span>
           <input
@@ -207,7 +263,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-if="canFilterByContractEnd" class="col-12 col-lg-5">
+      <div v-if="canFilterByContractEnd && !selectedCut" class="col-12 col-lg-4">
         <div class="input-group">
           <span class="input-group-text">Vencimiento</span>
           <input
@@ -231,6 +287,26 @@ onMounted(() => {
         </button>
       </div>
     </form>
+
+    <div
+      v-if="selectedCut"
+      class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2"
+      role="status"
+    >
+      <span>
+        Datos al {{ formatDate(selectedCut.cut_date) }}, tal como quedaron en el corte mensual. La
+        ficha de cada empleado muestra sus datos de hoy.
+      </span>
+      <button
+        v-if="canRetakeCut"
+        class="btn btn-outline-primary btn-sm"
+        type="button"
+        :disabled="isRetaking"
+        @click="retakeCut"
+      >
+        {{ isRetaking ? 'Rehaciendo…' : 'Rehacer este corte' }}
+      </button>
+    </div>
 
     <div v-if="errorMessage" class="alert alert-danger" role="alert">{{ errorMessage }}</div>
 

@@ -60,7 +60,8 @@ El objetivo es quitar el intermediario **sin abrir la información de más**.
 - **Listado de empleados** con búsqueda, filtros (incluidos rangos de fecha de ingreso y
   de vencimiento del contrato), orden y miniatura de la foto. Los filtros quedan en la
   dirección de la página, así que se conservan al volver de una ficha. Es la pantalla de
-  inicio.
+  inicio. Un selector de mes muestra a los empleados tal como quedaron en cada **corte
+  mensual**.
 - **Estructura organizacional**: organigrama por jefe inmediato y vista agrupada por
   dirección y sección, sobre el alcance de cada perfil.
 - **Ficha del empleado**, organizada por bloques de datos.
@@ -263,6 +264,8 @@ erDiagram
     COST_CENTER ||--o{ EMPLOYEE : "centro de costos"
     EMPLOYEE ||--o{ EMPLOYEE : "jefe inmediato"
     EMPLOYEE ||--o{ CONTRACT_EXTENSION : "prórrogas"
+    MONTHLY_CUT ||--o{ EMPLOYEE_SNAPSHOT : "empleados del mes"
+    EMPLOYEE ||--o{ EMPLOYEE_SNAPSHOT : ""
 ```
 
 *Figura 4. Modelo de datos*
@@ -276,6 +279,8 @@ erDiagram
 | `Position` | employees | Cargo. Catálogo editable por TH desde el admin (31 cargados) | — |
 | `CostCenter` | employees | Centro de costos: código y nombre. Catálogo editable por TH desde el admin (21 códigos cargados; el nombre arranca igual al código) | — |
 | `Employee` | employees | Un modelo plano, espejo de la especificación de TH | Sí |
+| `MonthlyCut` | employees | Corte mensual: la fecha de cierre de un mes | — |
+| `EmployeeSnapshot` | employees | Copia de un empleado en un corte: todas sus columnas a esa fecha, más su dirección, sección y estado de ese mes | — |
 | `ContractExtension` | employees | Prórroga de contrato (varias por empleado). Guarda desde cuándo rige; registrarla mueve la fecha de vencimiento del empleado | Sí |
 
 Reglas del modelo de empleado:
@@ -316,6 +321,9 @@ Todo cuelga de `/api/`, sin prefijo de versión. Permiso por defecto: `IsAuthent
 | GET | `/api/employees/` | Listado paginado (25), con búsqueda por nombre o identificación, filtros (`hire_date_from/to`, `contract_end_date_from/to`, `retirement_date_from/to` y los de lista de valores) y orden | Autenticado, recortado por perfil |
 | GET | `/api/employees/{id}/` | Detalle | Autenticado, recortado (404 fuera de alcance) |
 | POST / PUT / PATCH | `/api/employees/` · `/api/employees/{id}/` | Crear / editar | Solo Talento Humano |
+| GET | `/api/monthly-cuts/` | Cortes mensuales disponibles | Autenticado |
+| GET | `/api/monthly-cuts/{id}/employees/` | Empleados de un corte, con búsqueda y filtros de estado, dirección y sección | Autenticado, recortado por perfil con la dirección y la sección de ese mes |
+| POST | `/api/monthly-cuts/{id}/retake/` | Rehacer el último corte con los datos de hoy | Solo Talento Humano |
 | GET | `/api/employees/export-fields/` | Campos que el perfil puede elegir para un reporte | Autenticado |
 | GET | `/api/employees/report/?fields=…` | Vista previa paginada de un reporte, con los mismos filtros que el listado (más `team_of`: el equipo de un jefe, con toda su cadena) | Autenticado, recortado por perfil |
 | GET | `/api/employees/export/?file_format=xlsx\|csv\|pdf&fields=…` | Descarga del reporte; queda en el registro de descargas | Autenticado, recortado por perfil |
@@ -429,6 +437,7 @@ Solo corren con `DEBUG=True`:
 ```powershell
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_employees   # ~80 empleados inventados
 cd backend; .venv\Scripts\python.exe manage.py seed_demo_users       # una cuenta por perfil
+cd backend; .venv\Scripts\python.exe manage.py seed_demo_cuts        # 12 cortes mensuales aproximados
 ```
 
 Las cuentas quedan como `demo.<perfil>@<dominio corporativo>`, con la contraseña de
@@ -527,6 +536,7 @@ la versión nueva traía migraciones, revertirlas con `python manage.py migrate 
 | Respaldo de `MEDIA_ROOT` | Igual que la base | TI | Copia de la carpeta de fotos |
 | Alta y baja de cuentas | Cuando alguien entra o sale | TI | §10.2 |
 | Completar el catálogo de cargos | Cuando aparece un cargo nuevo | Talento Humano | Admin → Cargos |
+| Corte mensual de los empleados | **Diaria**, en la misma tarea que el aviso de vencimientos; solo actúa el día 1 | TI lo programa | `python manage.py take_monthly_cut`. El día 1 guarda el mes que terminó; si ya existe, no lo repite. `--date AAAA-MM-DD` toma un mes puntual. Se ven en Admin → Cortes mensuales |
 | Aviso de vencimientos de contrato | **Diaria**, por la mañana (propuesta: 6:00) | TI lo programa (cron o Programador de tareas) | `python manage.py send_contract_alerts`. Si ya salió ese día no lo repite; `--force` lo reenvía. Cada envío queda en Admin → Envíos de vencimientos |
 | Poner o cambiar el nombre de un centro de costos | Al arrancar (los 21 vienen con el código como nombre) o cuando Contabilidad crea o renombra uno | Talento Humano | Admin → Centros de costos |
 
@@ -580,6 +590,7 @@ producción, TI recoge esa salida con su servidor de aplicación. Los ingresos s
 | [0006](adr/0006-fotos-solo-por-la-api.md) | Fotos de empleados servidas solo por la API | Aceptada |
 | [0007](adr/0007-historial-con-django-simple-history.md) | Historial de cambios con `django-simple-history` | Aceptada |
 | [0008](adr/0008-reportes-descargables-con-el-mismo-recorte.md) | Reportes descargables con el mismo recorte de acceso, y `reportlab` para el PDF | Aceptada |
+| [0009](adr/0009-cortes-mensuales-como-copia.md) | Cortes mensuales como copia de los empleados, recortada al leer | Aceptada |
 
 ---
 

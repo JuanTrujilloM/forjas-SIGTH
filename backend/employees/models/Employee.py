@@ -287,10 +287,13 @@ class Employee(models.Model):
 
     @staticmethod
     def _whole_months_since(start) -> int:
-        today = timezone.localdate()
-        months = (today.year - start.year) * 12 + today.month - start.month
+        return Employee.whole_months_between(start, timezone.localdate())
 
-        if today.day < start.day:
+    @staticmethod
+    def whole_months_between(start, end) -> int:
+        months = (end.year - start.year) * 12 + end.month - start.month
+
+        if end.day < start.day:
             months -= 1
 
         return max(months, 0)

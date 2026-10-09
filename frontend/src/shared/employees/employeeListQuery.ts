@@ -12,6 +12,7 @@ export interface EmployeeListFilters {
   hireDateTo: string
   contractEndDateFrom: string
   contractEndDateTo: string
+  cut: string
 }
 
 const QUERY_KEYS: Record<keyof EmployeeListFilters, string> = {
@@ -23,6 +24,7 @@ const QUERY_KEYS: Record<keyof EmployeeListFilters, string> = {
   hireDateTo: 'ingreso_hasta',
   contractEndDateFrom: 'vence_desde',
   contractEndDateTo: 'vence_hasta',
+  cut: 'corte',
 }
 
 const NUMERIC_FILTERS = new Set<keyof EmployeeListFilters>(['division', 'section'])
@@ -37,6 +39,7 @@ export function emptyFilters(): EmployeeListFilters {
     hireDateTo: '',
     contractEndDateFrom: '',
     contractEndDateTo: '',
+    cut: '',
   }
 }
 
