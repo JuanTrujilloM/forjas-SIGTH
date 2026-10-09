@@ -7,7 +7,6 @@ from users.access import EmployeeFieldPolicy
 
 
 # main class
-# the stored columns go through the same matrix as a live employee, trimmed when read
 class EmployeeSnapshotSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeSnapshot

@@ -15,7 +15,6 @@ export interface EmployeeListFilters {
   cut: string
 }
 
-// the address bar is user-visible, so the keys are in Spanish like the routes
 const QUERY_KEYS: Record<keyof EmployeeListFilters, string> = {
   search: 'buscar',
   status: 'estado',
