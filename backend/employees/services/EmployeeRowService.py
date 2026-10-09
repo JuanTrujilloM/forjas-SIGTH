@@ -19,7 +19,6 @@ RELATED_NAMES = {
     'immediate_boss_name': ('immediate_boss', 'full_name'),
 }
 
-# files and bookkeeping columns are not part of what a profile reads about a person
 SKIPPED_FIELDS = {'id', 'photo', 'created_at', 'updated_at'}
 
 
@@ -31,7 +30,6 @@ class EmployeeRowService:
             'division', 'section', 'position', 'previous_position', 'immediate_boss', 'cost_center'
         ).prefetch_related('extensions')
 
-    # every column as plain JSON values, with age and seniority computed on the given date
     @staticmethod
     def row(employee: 'Employee', on: date) -> dict:
         row = {}
